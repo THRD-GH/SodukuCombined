@@ -9,7 +9,7 @@
  */
 
 import { CELLS, classicBoxes, colOf, rowOf } from '../core/grid.ts';
-import { diagonalCells, windowCells } from '../core/geometry.ts';
+import { diagonalCells, percentUnits, windowCells } from '../core/geometry.ts';
 import { carveJigsaw } from '../core/generator.ts';
 import { mulberry32 } from '../core/rng.ts';
 import type { Variants } from '../core/types.ts';
@@ -77,20 +77,25 @@ export function boardPreview(v: Variants): SVGSVGElement {
     }
   }
 
-  if (v.hyper) {
-    windowCells().forEach((window, k) => {
-      const r = rowOf(window[0]);
-      const c = colOf(window[0]);
-      svg.append(
-        make('rect', {
-          class: `pv-window${structural ? ` pv-win-${k}` : ''}`,
-          x: String(c),
-          y: String(r),
-          width: '3',
-          height: '3',
-        }),
-      );
-    });
+  // Windows: hyper's four, or — hyper off — Percent's two circles, which
+  // are hyper windows 0 and 3 and keep those hues.
+  const windows: [number[], number][] = v.hyper
+    ? windowCells().map((w, k) => [w, k] as [number[], number])
+    : v.percent
+      ? percentUnits().windows.map((w, k) => [w, k === 0 ? 0 : 3] as [number[], number])
+      : [];
+  for (const [window, k] of windows) {
+    const r = rowOf(window[0]);
+    const c = colOf(window[0]);
+    svg.append(
+      make('rect', {
+        class: `pv-window${structural ? ` pv-win-${k}` : ''}`,
+        x: String(c),
+        y: String(r),
+        width: '3',
+        height: '3',
+      }),
+    );
   }
 
   // Hairline grid.
@@ -127,20 +132,28 @@ export function boardPreview(v: Variants): SVGSVGElement {
     }
   }
 
-  if (v.x) {
-    for (const diag of diagonalCells()) {
-      const a = diag[0];
-      const b = diag[8];
-      svg.append(
-        make('line', {
-          class: 'pv-diag',
-          x1: String(colOf(a) + 0.5),
-          y1: String(rowOf(a) + 0.5),
-          x2: String(colOf(b) + 0.5),
-          y2: String(rowOf(b) + 0.5),
-        }),
-      );
-    }
+  // Diagonals: X owns both; Percent alone has only its slash. Washed cells
+  // normally, small cages instead when the Colour variant owns the washes.
+  const [main, anti] = diagonalCells();
+  const diagCells = new Set<number>(v.x ? [...main, ...anti] : v.percent ? anti : []);
+  for (const c of diagCells) {
+    svg.append(
+      structural
+        ? make('rect', {
+            class: 'pv-diag-fill',
+            x: String(colOf(c)),
+            y: String(rowOf(c)),
+            width: '1',
+            height: '1',
+          })
+        : make('rect', {
+            class: 'pv-diag-cage',
+            x: String(colOf(c) + 0.12),
+            y: String(rowOf(c) + 0.12),
+            width: '0.76',
+            height: '0.76',
+          }),
+    );
   }
 
   svg.append(make('rect', { class: 'pv-frame', x: '0', y: '0', width: '9', height: '9' }));

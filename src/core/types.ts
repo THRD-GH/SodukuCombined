@@ -9,6 +9,8 @@ export type Level = 1 | 2 | 3 | 4 | 5 | 6;
 export interface Variants {
   /** Both main diagonals hold 1..9. */
   x: boolean;
+  /** The percent sign: the anti-diagonal and two windows hold 1..9. */
+  percent: boolean;
   /** Irregular nine-cell regions replace the 3x3 boxes. */
   jigsaw: boolean;
   /** Four extra 3x3 boxes (windows) at rows/cols 2-4 and 6-8. */
@@ -17,11 +19,18 @@ export interface Variants {
   colour: boolean;
 }
 
-export const NO_VARIANTS: Variants = { x: false, jigsaw: false, hyper: false, colour: false };
+export const NO_VARIANTS: Variants = {
+  x: false,
+  percent: false,
+  jigsaw: false,
+  hyper: false,
+  colour: false,
+};
 
 /** Canonical letter order, so every combo has exactly one code. */
 const VARIANT_LETTERS: [keyof Variants, string][] = [
   ['x', 'X'],
+  ['percent', 'P'],
   ['jigsaw', 'J'],
   ['hyper', 'H'],
   ['colour', 'C'],
@@ -37,9 +46,10 @@ export function variantCode(v: Variants): string {
 
 export function parseVariantCode(code: string): Variants | null {
   if (code === 'S') return { ...NO_VARIANTS };
-  if (!/^X?J?H?C?$/.test(code) || code === '') return null;
+  if (!/^X?P?J?H?C?$/.test(code) || code === '') return null;
   return {
     x: code.includes('X'),
+    percent: code.includes('P'),
     jigsaw: code.includes('J'),
     hyper: code.includes('H'),
     colour: code.includes('C'),
@@ -48,6 +58,7 @@ export function parseVariantCode(code: string): Variants | null {
 
 export const VARIANT_NAMES: Record<keyof Variants, string> = {
   x: 'X',
+  percent: 'Percent',
   jigsaw: 'Jigsaw',
   hyper: 'Hyper',
   colour: 'Colour',

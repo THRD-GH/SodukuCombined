@@ -95,8 +95,7 @@
   --k-tally-text: #d9c2ee;
 
   /* Variant dressing: diagonal lines, hyper windows, colour wash strength. */
-  --diag: rgba(214, 178, 94, 0.4);
-  --diag-bg: rgba(214, 178, 94, 0.1);
+  --diag-bg: rgba(214, 178, 94, 0.24);
   --window-line: rgba(143, 180, 214, 0.35);
   --clr-alpha: 0.36;
   --reg-alpha: 0.15;
@@ -153,8 +152,7 @@
   --k-tally-line: #cdb4e0;
   --k-tally-text: #6b3f96;
 
-  --diag: rgba(47, 79, 111, 0.4);
-  --diag-bg: rgba(47, 79, 111, 0.09);
+  --diag-bg: rgba(190, 150, 60, 0.26);
   --window-line: rgba(47, 79, 111, 0.3);
   --clr-alpha: 0.3;
   --reg-alpha: 0.16;
@@ -214,8 +212,7 @@
   --k-tally-line: #cc79a7;
   --k-tally-text: #ffffff;
 
-  --diag: #f0e442;
-  --diag-bg: rgba(240, 228, 66, 0.16);
+  --diag-bg: rgba(240, 228, 66, 0.3);
   --window-line: #f0e442;
   --clr-alpha: 0.45;
   --reg-alpha: 0.3;
@@ -223,8 +220,8 @@
 }
 
 /* Heavier strokes: thin grey lines are the first thing to disappear. */
-:root[data-theme='contrast'] .diagonals line {
-  stroke-width: 0.08;
+:root[data-theme='contrast'] .diag-cage {
+  stroke-width: 0.07;
 }
 
 :root[data-theme='contrast'] .btn {
@@ -467,8 +464,8 @@ body {
  * over all backgrounds, and the digits sit above the lot.
  */
 
-/* The two diagonals, one SVG over the whole board — set like an X sudoku in
-   print. Over the tints, under the digits, exactly as the cage outlines sat. */
+/* Small cages marking the diagonal cells when the Colour variant owns the
+   washes. Over the tints, under the digits. */
 .diagonals {
   position: absolute;
   inset: 0;
@@ -478,9 +475,11 @@ body {
   z-index: 0;
 }
 
-.diagonals line {
-  stroke: var(--diag);
-  stroke-width: 0.05;
+.diag-cage {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 0.04;
+  stroke-dasharray: 0.14 0.09;
   stroke-linecap: round;
 }
 
@@ -874,16 +873,84 @@ body {
 
 /* ---------- game picker ---------- */
 
-/* The live preview of the board the current mix produces. */
+/*
+ * Options down the left, the board they add up to on the right. The preview
+ * column is the wider one: it is the thing being chosen.
+ */
+.picker-row {
+  display: grid;
+  grid-template-columns: minmax(108px, 0.75fr) minmax(0, 1.25fr);
+  gap: 10px;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.voptions {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vopt {
+  padding: 8px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--dim);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.vopt.on {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.vopt:active {
+  background: var(--accent-dim);
+}
+
+/* A tick gutter, so on/off does not ride on colour alone. */
+.vopt::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+}
+
+.vopt.on::before {
+  content: '✓';
+  color: var(--accent);
+}
+
+.picker-preview {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+/* The live preview of the board the current selection produces. */
 .game-preview {
   display: flex;
   justify-content: center;
-  padding: 2px 0 0;
+  width: 100%;
 }
 
 .game-preview .board-preview {
-  width: 150px;
-  height: 150px;
+  width: min(100%, 208px);
+  aspect-ratio: 1;
+  height: auto;
   box-shadow: 0 4px 14px var(--shadow);
 }
 
@@ -896,7 +963,8 @@ body {
 .pv-rule { stroke: var(--rule); stroke-width: 0.035; }
 .pv-region { stroke: var(--line-strong); stroke-width: 0.16; stroke-linecap: square; }
 .pv-frame { fill: none; stroke: var(--line-strong); stroke-width: 0.12; }
-.pv-diag { stroke: var(--diag); stroke-width: 0.22; stroke-linecap: round; }
+.pv-diag-fill { fill: var(--diag-bg); }
+.pv-diag-cage { fill: none; stroke: var(--line-strong); stroke-width: 0.05; stroke-dasharray: 0.16 0.11; }
 .pv-window { fill: none; stroke: var(--window-line); stroke-width: 0.09; }
 
 .pv-clr-0 { fill: rgb(var(--hue-0) / var(--clr-alpha)); }
@@ -924,7 +992,7 @@ body {
 .pv-win-2 { fill: rgb(var(--hue-6) / var(--win-alpha)); }
 .pv-win-3 { fill: rgb(var(--hue-1) / var(--win-alpha)); }
 
-/* What the cards currently spell out: "X · Jigsaw Sudoku". */
+/* What the options currently spell out: "X · Jigsaw Sudoku". */
 .combo-label {
   margin: 0;
   text-align: center;
@@ -932,49 +1000,6 @@ body {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.4px;
-}
-
-/* The four variant cards, each wearing its own mini board. */
-.vcards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-
-.vcard {
-  min-width: 0;
-  padding: 8px 6px 6px;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  color: var(--dim);
-  font-family: var(--font-ui);
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-  display: grid;
-  justify-items: center;
-  gap: 5px;
-}
-
-.vcard .board-preview {
-  width: 100%;
-  max-width: 62px;
-  aspect-ratio: 1;
-  border-radius: 2px;
-}
-
-.vcard.on {
-  background: var(--accent-dim);
-  border-color: var(--accent);
-  color: var(--text);
-}
-
-.vcard:active {
-  background: var(--accent-dim);
 }
 
 /* Six levels stacked. */

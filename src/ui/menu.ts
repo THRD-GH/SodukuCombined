@@ -38,21 +38,25 @@ export function buildMenu(ctx: AppContext): HTMLElement {
 
   // ----------------------------------------------------------- game picker
   /*
-   * The game is picked by eye, not by name: a live preview shows the exact
-   * board the current mix produces, and each variant card carries its own
-   * mini board so what a toggle *means* is visible before it is pressed.
+   * Options down the left, the board they add up to on the right. Standard
+   * is the empty mix — picking it clears the others — and every other
+   * option toggles into the combination; the preview redraws the exact
+   * board the current selection produces.
    */
   const previewBox = el('div', { class: 'game-preview' });
   const comboLabel = el('p', { class: 'combo-label' });
-  const cardRow = el('div', { class: 'vcards', role: 'group', 'aria-label': 'Variants' });
+  const optionCol = el('div', { class: 'voptions', role: 'group', 'aria-label': 'Game type' });
   const levelList = el('div', { class: 'levels' });
 
   const describe: Record<keyof Variants, string> = {
     x: 'both main diagonals hold 1-9',
+    percent: 'the % shape: the anti-diagonal and two windows hold 1-9',
     jigsaw: 'irregular regions replace the boxes',
     hyper: 'four extra windows hold 1-9',
     colour: 'nine colour groups hold 1-9',
   };
+
+  const isStandard = (): boolean => Object.values(ctx.settings.variants).every((on) => !on);
 
   const redrawPreview = (): void => {
     clear(previewBox);
@@ -65,34 +69,54 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     for (const level of LEVELS) levelList.append(buildLevelPanel(ctx, level));
   };
 
-  for (const key of Object.keys(VARIANT_NAMES) as (keyof Variants)[]) {
-    const single: Variants = { ...NO_VARIANTS, [key]: true };
-    const card = el(
-      'button',
-      {
-        class: 'vcard',
-        role: 'switch',
-        title: describe[key],
-        'aria-label': `${VARIANT_NAMES[key]} — ${describe[key]}`,
-      },
-      boardPreview(single),
-      el('span', {}, VARIANT_NAMES[key]),
-    );
-    const sync = (): void => {
-      card.classList.toggle('on', ctx.settings.variants[key]);
-      card.setAttribute('aria-checked', String(ctx.settings.variants[key]));
-    };
-    card.addEventListener('click', () => {
-      ctx.settings.variants[key] = !ctx.settings.variants[key];
-      saveSettings(ctx.settings);
-      sync();
-      redrawPreview();
-      redrawLevels();
+  const syncs: (() => void)[] = [];
+  const changed = (): void => {
+    saveSettings(ctx.settings);
+    for (const sync of syncs) sync();
+    redrawPreview();
+    redrawLevels();
+  };
+
+  const option = (
+    label: string,
+    title: string,
+    isOn: () => boolean,
+    toggle: () => void,
+  ): HTMLButtonElement => {
+    const btn = el('button', { class: 'vopt', role: 'switch', title, 'aria-label': `${label} — ${title}` }, label);
+    syncs.push(() => {
+      btn.classList.toggle('on', isOn());
+      btn.setAttribute('aria-checked', String(isOn()));
     });
-    sync();
-    cardRow.append(card);
+    btn.addEventListener('click', () => {
+      toggle();
+      changed();
+    });
+    return btn;
+  };
+
+  optionCol.append(
+    option('Standard', 'plain sudoku — clears the other options', isStandard, () => {
+      ctx.settings.variants = { ...NO_VARIANTS };
+    }),
+  );
+  for (const key of Object.keys(VARIANT_NAMES) as (keyof Variants)[]) {
+    optionCol.append(
+      option(VARIANT_NAMES[key], describe[key], () => ctx.settings.variants[key], () => {
+        ctx.settings.variants[key] = !ctx.settings.variants[key];
+      }),
+    );
   }
-  screen.append(previewBox, comboLabel, cardRow);
+
+  screen.append(
+    el(
+      'div',
+      { class: 'picker-row' },
+      optionCol,
+      el('div', { class: 'picker-preview' }, previewBox, comboLabel),
+    ),
+  );
+  for (const sync of syncs) sync();
   redrawPreview();
 
   // ---------------------------------------------------------------- resume

@@ -15,10 +15,12 @@ import { NO_VARIANTS, variantCode } from '../src/core/types.ts';
 const combos: Variants[] = [
   { ...NO_VARIANTS },
   { ...NO_VARIANTS, x: true },
+  { ...NO_VARIANTS, percent: true },
   { ...NO_VARIANTS, jigsaw: true },
   { ...NO_VARIANTS, hyper: true },
   { ...NO_VARIANTS, colour: true },
-  { x: true, jigsaw: true, hyper: true, colour: true },
+  { ...NO_VARIANTS, percent: true, jigsaw: true },
+  { x: true, percent: true, jigsaw: true, hyper: true, colour: true },
 ];
 
 const levels: Level[] = [1, 3, 6];

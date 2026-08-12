@@ -14,6 +14,7 @@ const SECTIONS: [string, string[]][] = [
     'Variants',
     [
       'X — both main diagonals hold 1–9. They are drawn as lines across the board.',
+      'Percent — the % shape: the anti-diagonal and two shaded windows each hold 1–9.',
       'Jigsaw — the nine 3×3 boxes are replaced by nine irregular regions, traced by the thick borders.',
       'Hyper — four extra shaded 3×3 boxes, at rows/columns 2–4 and 6–8, each hold 1–9.',
       'Colour — the cells are painted in nine colours, and each colour holds 1–9.',

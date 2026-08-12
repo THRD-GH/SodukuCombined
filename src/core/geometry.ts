@@ -52,6 +52,15 @@ export function diagonalCells(): number[][] {
   return [main, anti];
 }
 
+/**
+ * The percent sign, drawn in units: the anti-diagonal is its slash and two
+ * windows are its circles — the top-left and bottom-right of the hyper set.
+ */
+export function percentUnits(): { slash: number[]; windows: number[][] } {
+  const windows = windowCells();
+  return { slash: diagonalCells()[1], windows: [windows[0], windows[3]] };
+}
+
 const groupsFromMap = (map: number[]): number[][] => {
   const groups: number[][] = Array.from({ length: 9 }, () => []);
   for (let i = 0; i < CELLS; i++) groups[map[i]].push(i);
@@ -69,6 +78,17 @@ export function buildGeometry(
   units.push(...groupsFromMap(boxes));
   if (variants.x) units.push(...diagonalCells());
   if (variants.hyper) units.push(...windowCells());
+  /*
+   * Percent shares its pieces with X (the anti-diagonal) and hyper (two of
+   * the four windows), so with those also on it only adds what is not
+   * already there — a duplicated unit would double every overlap pair for
+   * no new constraint.
+   */
+  if (variants.percent) {
+    const { slash, windows } = percentUnits();
+    if (!variants.x) units.push(slash);
+    if (!variants.hyper) units.push(...windows);
+  }
   if (variants.colour && colours) units.push(...groupsFromMap(colours));
 
   const unitsOf: number[][] = Array.from({ length: CELLS }, () => []);

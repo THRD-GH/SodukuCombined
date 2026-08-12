@@ -1,5 +1,5 @@
 import { CELLS, colOf, maskToDigits, popcount, rowOf } from '../core/grid.ts';
-import { diagonalCells, windowCells } from '../core/geometry.ts';
+import { diagonalCells, percentUnits, windowCells } from '../core/geometry.ts';
 import type { Game } from '../game/state.ts';
 import type { Settings } from '../game/storage.ts';
 import { el } from './dom.ts';
@@ -49,13 +49,18 @@ export class Board {
     const { puzzle } = this.game;
     const variants = puzzle.variants;
 
+    // Cells on an active diagonal: both for X, the anti-diagonal for Percent.
     const onDiagonal = new Set<number>();
     if (variants.x) for (const diag of diagonalCells()) for (const c of diag) onDiagonal.add(c);
+    if (variants.percent) for (const c of percentUnits().slash) onDiagonal.add(c);
 
     /** Which window a cell sits in, for the per-window tint. */
     const windowOf = new Map<number, number>();
     if (variants.hyper) {
       windowCells().forEach((w, k) => w.forEach((c) => windowOf.set(c, k)));
+    } else if (variants.percent) {
+      // Percent's circles are hyper windows 0 and 3; they keep those hues.
+      percentUnits().windows.forEach((w, k) => w.forEach((c) => windowOf.set(c, k === 0 ? 0 : 3)));
     }
 
     /*
@@ -91,11 +96,11 @@ export class Board {
        */
       if (c !== 0 && puzzle.boxes[i] !== puzzle.boxes[i - 1]) classes.push('reg-l');
       if (r !== 0 && puzzle.boxes[i] !== puzzle.boxes[i - 9]) classes.push('reg-t');
-      if (variants.x && onDiagonal.has(i)) {
+      if (onDiagonal.has(i)) {
         classes.push('diag');
         if (structural) classes.push('diag-tint');
       }
-      if (variants.hyper && windowOf.has(i)) {
+      if (windowOf.has(i)) {
         classes.push('window');
         if (structural) classes.push(`win-${windowOf.get(i)}`);
       }
@@ -128,30 +133,34 @@ export class Board {
       rows[r].append(root);
     }
 
-    if (variants.x) this.root.append(this.buildDiagonalLayer());
+    /*
+     * How a diagonal announces itself depends on what else is on. With the
+     * Colour variant off, the diagonal cells simply wear a wash of their
+     * own (the `diag-tint` class above) — no line across the grid. With
+     * Colour on, every wash belongs to the colour rule, so each diagonal
+     * cell gets a small cage outline instead, killer-style.
+     */
+    if (!structural && onDiagonal.size > 0) {
+      this.root.append(this.buildDiagonalCages(onDiagonal));
+    }
   }
 
-  /**
-   * The two diagonals as lines through the cell centres, in one SVG over the
-   * board — the way X sudoku is set in print. The `diag` cell tint alone
-   * reads as decoration; the line says "these nine cells are a unit".
-   */
-  private buildDiagonalLayer(): SVGSVGElement {
+  /** A small dashed cage in every diagonal cell, in one SVG over the board. */
+  private buildDiagonalCages(cells: Set<number>): SVGSVGElement {
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('class', 'diagonals');
     svg.setAttribute('viewBox', '0 0 9 9');
     svg.setAttribute('preserveAspectRatio', 'none');
     svg.setAttribute('aria-hidden', 'true');
-    for (const [x1, y1, x2, y2] of [
-      [0.5, 0.5, 8.5, 8.5],
-      [8.5, 0.5, 0.5, 8.5],
-    ]) {
-      const line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('x1', String(x1));
-      line.setAttribute('y1', String(y1));
-      line.setAttribute('x2', String(x2));
-      line.setAttribute('y2', String(y2));
-      svg.append(line);
+    const inset = 0.1;
+    for (const c of cells) {
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('class', 'diag-cage');
+      rect.setAttribute('x', String(colOf(c) + inset));
+      rect.setAttribute('y', String(rowOf(c) + inset));
+      rect.setAttribute('width', String(1 - 2 * inset));
+      rect.setAttribute('height', String(1 - 2 * inset));
+      svg.append(rect);
     }
     return svg;
   }
