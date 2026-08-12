@@ -100,7 +100,10 @@ export class PlayScreen {
       this.board.root,
       {
         onTap: (i) => {
-          this.game.selected = i;
+          // Tapping the selected cell again puts it down — which is also
+          // the way back to the keypad's digit highlight, since that only
+          // works with no cell in hand.
+          this.game.selected = i === this.game.selected ? -1 : i;
           // Selecting a cell hands the same-digit highlight back to it.
           this.board.focusDigit(0);
           this.render();
