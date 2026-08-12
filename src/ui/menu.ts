@@ -58,10 +58,25 @@ export function buildMenu(ctx: AppContext): HTMLElement {
 
   const isStandard = (): boolean => Object.values(ctx.settings.variants).every((on) => !on);
 
+  /**
+   * How much game the mix is, one to five stars — a rules-complexity read,
+   * not the level ladder: every rule in play is one more thing each cell
+   * answers to. Colour counts double for its nine scattered groups.
+   */
+  const comboStars = (v: Variants): number => {
+    const load =
+      (v.x ? 1 : 0) + (v.percent ? 1 : 0) + (v.jigsaw ? 1 : 0) + (v.hyper ? 1 : 0) + (v.colour ? 2 : 0);
+    return Math.min(5, 1 + load);
+  };
+
   const redrawPreview = (): void => {
     clear(previewBox);
     previewBox.append(boardPreview(ctx.settings.variants));
-    comboLabel.textContent = variantLabel(ctx.settings.variants);
+    clear(comboLabel);
+    comboLabel.append(
+      el('span', {}, variantLabel(ctx.settings.variants)),
+      stars(comboStars(ctx.settings.variants), 11),
+    );
   };
 
   const redrawLevels = (): void => {

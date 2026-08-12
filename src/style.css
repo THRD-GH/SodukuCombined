@@ -996,14 +996,22 @@ body {
 .pv-win-2 { fill: rgb(var(--hue-6) / var(--win-alpha)); }
 .pv-win-3 { fill: rgb(var(--hue-1) / var(--win-alpha)); }
 
-/* What the options currently spell out: "X · Jigsaw Sudoku". */
+/* What the options currently spell out, and how much game it is. */
 .combo-label {
   margin: 0;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   color: var(--accent);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.4px;
+}
+
+.combo-label .stars {
+  display: flex;
+  gap: 1px;
 }
 
 /* Six levels stacked. */
