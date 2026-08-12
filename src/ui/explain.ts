@@ -63,6 +63,45 @@ const REASONS: Record<string, string> = {
 export const explainTechnique = (technique: string): string =>
   REASONS[technique] ?? 'This narrows the candidates.';
 
+/**
+ * The teaching version, for the technique guide: what to look for, why the
+ * logic is forced, and what it lets you cross off. The hints keep the short
+ * REASONS above — a hint interrupts play, a lesson is the point of the page.
+ */
+const LESSONS: Record<string, string> = {
+  'naked single':
+    'Cross off everything a cell can see: every digit already placed in its row, column, region, or any variant group it belongs to. When eight of the nine digits are crossed off, the one left is the answer — write it in.',
+  'hidden single':
+    'Pick a digit and a group, and ask: where can it still go? The digit must appear exactly once in that group. If every cell but one is blocked — it can see the digit elsewhere, or already holds something — the last cell must take it, even if that cell still lists other candidates.',
+  'locked candidates':
+    'Look where a digit can sit within one group, and notice that every possibility falls in cells it shares with a second group — a box crossing a row, a window crossing a column. The digit must land in that overlap to satisfy the first group, and that same cell then counts for the second — so cross it off everywhere else in the second group.',
+  'naked subset':
+    'Find two cells in a group holding exactly the same two candidates, say {3,8}. One will be 3 and the other 8 — you cannot say which way round, but both digits are spoken for. Cross 3 and 8 off every other cell in the group. Three cells sharing only three candidates work the same way.',
+  'hidden subset':
+    'Count homes: if two digits can only fit in the same two cells of a group — every other cell blocked for both — those cells must take those digits, whatever else they list. Everything else in those two cells can be crossed off. Three digits confined to three cells work the same way.',
+  'naked quad':
+    'The four-cell naked set: four cells in a group listing only four candidates between them. Those digits must share out one-per-cell, so all four leave every other cell in the group. Quads hide well because no single cell has to hold all four candidates — check what the cells list together.',
+  'hidden quad':
+    'Four digits whose only homes in a group are the same four cells. However they arrange themselves, those cells are fully spoken for, so their other candidates all go. Spot it by counting homes digit by digit — any digit down to a few places is worth the look.',
+  'x-wing':
+    'Pick a digit and find two rows where it has exactly two places left, lined up in the same two columns — a rectangle. Each row must use one of the two columns, and they cannot share, so between them both columns are used up. Cross the digit off everywhere else in both columns. Columns-to-rows works the same.',
+  'xy-wing':
+    'Three cells, each down to two candidates. A pivot {a,b} sees two pincers: {a,c} and {b,c}. If the pivot is a, the first pincer is forced to c; if b, the second is. One pincer is c either way — so a cell that sees both pincers can never be c.',
+  'xyz-wing':
+    'Like an XY-wing, but the pivot keeps all three digits {a,b,c}. Run the cases: pivot a forces the {a,c} pincer to c; pivot b forces the other; pivot c is c itself. Every case puts a c in the trio, so c leaves any cell that sees all three — which keeps the eliminations close to the pivot.',
+  swordfish:
+    'The three-line fish. One digit, three rows, and every place it can go in them falls in the same three columns. Each row claims a different one of those columns, so the three columns are fully accounted for — the digit comes out of them everywhere else. Rows with only two places count too, as long as they stay inside the three columns.',
+  'turbot fish':
+    'A strong link is a group where the digit has exactly two places: one empty means the other holds it. Take two strong links on one digit whose ends see each other in the middle. If the first far end is not the digit, the chain forces the second far end to be it. One far end is always the digit — so cells seeing both far ends never are. Skyscrapers and two-string kites are this shape.',
+  'w-wing':
+    'Two cells in different groups hold the same pair {a,b}, and somewhere a group has only two places for b — one seeing each cell. If neither of the pair were b, both of those places would be blocked and the linking group would lose b entirely, which cannot happen. So one of the pair is b, and a leaves every cell that sees both.',
+  jellyfish:
+    'The four-line fish: every place a digit can go in four rows falls in the same four columns. Each row claims its own column, all four columns are accounted for, and the digit disappears from the rest of them. The hunt is exactly an X-wing with bigger nets.',
+};
+
+export const explainTechniqueFully = (technique: string): string =>
+  LESSONS[technique] ?? explainTechnique(technique);
+
 export function explainStep(step: Step): string {
   const reason = explainTechnique(step.technique);
   if (step.solved) {

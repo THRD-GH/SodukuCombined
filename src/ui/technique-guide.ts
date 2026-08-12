@@ -4,7 +4,7 @@ import type { Level } from '../core/types.ts';
 import { clear, el } from './dom.ts';
 import { openOverlay } from './overlay.ts';
 import { stars } from './stars.ts';
-import { describeTechnique, explainTechnique } from './explain.ts';
+import { describeTechnique, explainTechniqueFully } from './explain.ts';
 import { techniqueExample } from './technique-examples.ts';
 import { LEVEL_LEADS } from './level-info.ts';
 
@@ -44,7 +44,10 @@ export function openTechniqueGuide(): void {
       );
 
       clear(card);
-      card.append(el('b', {}, describeTechnique(t.name)), el('p', {}, explainTechnique(t.name)));
+      card.append(
+        el('b', {}, describeTechnique(t.name)),
+        el('p', {}, explainTechniqueFully(t.name)),
+      );
       const example = techniqueExample(t.name);
       if (example) card.append(example);
 
