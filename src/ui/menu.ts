@@ -14,6 +14,7 @@ import { LEVEL_LEADS, openLevelInfo } from './level-info.ts';
 import { openUnfinishedPicker } from './unfinished-picker.ts';
 import { openTutorial } from './tutorial.ts';
 import { openTechniqueGuide } from './technique-guide.ts';
+import { openVariantGuide } from './variant-guide.ts';
 
 /**
  * The menu: pick a variant combination, then a level. The four variant chips
@@ -347,6 +348,7 @@ export function openPicker(ctx: AppContext, variants: Variants, level: Level): v
 export function openMainMenu(ctx: AppContext): void {
   openActionMenu('Menu', [
     { label: 'How to play walkthrough', run: () => openTutorial() },
+    { label: 'Variant guide, rule by rule', run: () => openVariantGuide() },
     { label: 'Technique guide, level by level', run: () => openTechniqueGuide() },
     { label: 'Settings', run: () => ctx.openSettings() },
     { label: 'Stats', run: () => ctx.goStats(1) },

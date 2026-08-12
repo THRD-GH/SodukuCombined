@@ -1117,16 +1117,17 @@ body {
 
 .dial-num {
   font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 800;
+  fill: var(--text);
   text-anchor: middle;
-  opacity: 0.55;
+  opacity: 0.75;
 }
 
 .dial-num.on {
   opacity: 1;
-  font-weight: 800;
-  font-size: 12.5px;
+  font-size: 14.5px;
+  fill: var(--accent);
 }
 
 .dial-shadow { fill: var(--dial-shadow); }
@@ -1848,6 +1849,9 @@ body {
 .guide-technique b { color: var(--accent); font-size: 14px; }
 .guide-technique p { margin: 3px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--text); }
 .guide-progress { margin: 8px 0; text-align: center; color: var(--dim); font-size: 11.5px; }
+.guide-title { margin: 6px 0; font-size: 19px; color: var(--accent); }
+/* Preview boards borrowed from the picker, sized like the example boards. */
+.guide .board-preview { width: min(100%, 250px, 44dvh); height: auto; aspect-ratio: 1; }
 
 /* Worked example boards inside the guide cards. */
 .tg-example { display: grid; justify-items: center; gap: 4px; margin-top: 8px; }

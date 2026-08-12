@@ -73,14 +73,11 @@ export function buildLevelDial(initial: Level, onChange: (level: Level) => void)
       y2: String(y2),
       stroke: `hsl(${hueFor(l)} 62% 45%)`,
     });
-    const [tx, ty] = point(43.5, deg);
+    // The numbers wear the theme's ink, not the ramp — the coloured ticks
+    // carry the scale, the digits' job is to be readable.
+    const [tx, ty] = point(44, deg);
     numbers.push(
-      make(
-        'text',
-        { class: 'dial-num', x: String(tx), y: String(ty + 3.5), fill: `hsl(${hueFor(l)} 62% 45%)` },
-        svg,
-        String(l),
-      ),
+      make('text', { class: 'dial-num', x: String(tx), y: String(ty + 3.5) }, svg, String(l)),
     );
   }
 
