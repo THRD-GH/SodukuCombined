@@ -896,15 +896,15 @@ body {
   gap: 5px;
 }
 
+/* Bare rows: a label and its switch, no box around them. */
 .vopt {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 7px 8px 7px 10px;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  padding: 6px 2px;
+  background: transparent;
+  border: none;
   color: var(--dim);
   font-family: var(--font-ui);
   font-size: 14px;
@@ -917,12 +917,7 @@ body {
 }
 
 .vopt.on {
-  border-color: var(--accent);
   color: var(--text);
-}
-
-.vopt:active {
-  background: var(--accent-dim);
 }
 
 /* The switch is smaller here than on the settings screen: six rows of it. */
