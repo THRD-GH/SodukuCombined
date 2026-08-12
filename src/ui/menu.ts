@@ -6,7 +6,7 @@ import { allSaves, levelStats, saveSettings, unplayedNumbers } from '../game/sto
 import { buildStamp, clear, el, formatTime } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
-import { diamonds, stars } from './stars.ts';
+import { pips, stars } from './stars.ts';
 import type { AppContext } from './app-context.ts';
 import { openActionMenu } from './action-menu.ts';
 import { openLevelInfo } from './level-info.ts';
@@ -75,7 +75,7 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     clear(comboLabel);
     comboLabel.append(
       el('span', {}, variantLabel(ctx.settings.variants)),
-      diamonds(comboStars(ctx.settings.variants), 11),
+      pips(comboStars(ctx.settings.variants), 11),
     );
   };
 
