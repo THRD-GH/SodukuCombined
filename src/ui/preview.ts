@@ -78,7 +78,8 @@ export function boardPreview(v: Variants): SVGSVGElement {
   }
 
   // Windows: hyper's four, or — hyper off — Percent's two circles, which
-  // are hyper windows 0 and 3 and keep those hues.
+  // are hyper windows 0 and 3 and keep those hues. Washed and keylined
+  // normally; a dashed cage around the box when Colour owns the washes.
   const windows: [number[], number][] = v.hyper
     ? windowCells().map((w, k) => [w, k] as [number[], number])
     : v.percent
@@ -88,13 +89,21 @@ export function boardPreview(v: Variants): SVGSVGElement {
     const r = rowOf(window[0]);
     const c = colOf(window[0]);
     svg.append(
-      make('rect', {
-        class: `pv-window${structural ? ` pv-win-${k}` : ''}`,
-        x: String(c),
-        y: String(r),
-        width: '3',
-        height: '3',
-      }),
+      structural
+        ? make('rect', {
+            class: `pv-window pv-win-${k}`,
+            x: String(c),
+            y: String(r),
+            width: '3',
+            height: '3',
+          })
+        : make('rect', {
+            class: 'pv-window-cage',
+            x: String(c + 0.1),
+            y: String(r + 0.1),
+            width: '2.8',
+            height: '2.8',
+          }),
     );
   }
 

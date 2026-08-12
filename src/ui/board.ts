@@ -54,14 +54,17 @@ export class Board {
     if (variants.x) for (const diag of diagonalCells()) for (const c of diag) onDiagonal.add(c);
     if (variants.percent) for (const c of percentUnits().slash) onDiagonal.add(c);
 
-    /** Which window a cell sits in, for the per-window tint. */
+    /** The active windows, and which one each cell sits in for the tints. */
+    const windows: number[][] = variants.hyper
+      ? windowCells()
+      : variants.percent
+        ? percentUnits().windows
+        : [];
     const windowOf = new Map<number, number>();
-    if (variants.hyper) {
-      windowCells().forEach((w, k) => w.forEach((c) => windowOf.set(c, k)));
-    } else if (variants.percent) {
+    windows.forEach((w, k) =>
       // Percent's circles are hyper windows 0 and 3; they keep those hues.
-      percentUnits().windows.forEach((w, k) => w.forEach((c) => windowOf.set(c, k === 0 ? 0 : 3)));
-    }
+      w.forEach((c) => windowOf.set(c, variants.hyper ? k : k === 0 ? 0 : 3)),
+    );
 
     /*
      * Structural tints — a unique colour per jigsaw region, per window, and
@@ -100,9 +103,10 @@ export class Board {
         classes.push('diag');
         if (structural) classes.push('diag-tint');
       }
-      if (windowOf.has(i)) {
-        classes.push('window');
-        if (structural) classes.push(`win-${windowOf.get(i)}`);
+      // With Colour on the window mark is a cage in the overlay instead, so
+      // the keyline-and-wash classes only apply while tints are structural.
+      if (structural && windowOf.has(i)) {
+        classes.push('window', `win-${windowOf.get(i)}`);
       }
       if (variants.colour && puzzle.colours) classes.push(`clr-${puzzle.colours[i]}`);
       if (structural && variants.jigsaw) classes.push(`reg-c${puzzle.boxes[i]}`);
@@ -134,24 +138,34 @@ export class Board {
     }
 
     /*
-     * How a diagonal announces itself depends on what else is on. With the
-     * Colour variant off, the diagonal cells simply wear a wash of their
-     * own (the `diag-tint` class above) — no line across the grid. With
-     * Colour on, every wash belongs to the colour rule, so each diagonal
-     * cell gets a small cage outline instead, killer-style.
+     * How a diagonal or window announces itself depends on what else is on.
+     * With the Colour variant off they simply wear washes of their own — no
+     * line across the grid. With Colour on, every wash belongs to the
+     * colour rule, so each diagonal cell gets a small cage outline and each
+     * window a cage around its whole box instead, killer-style.
      */
-    if (!structural && onDiagonal.size > 0) {
-      this.root.append(this.buildDiagonalCages(onDiagonal));
+    if (!structural && (onDiagonal.size > 0 || windows.length > 0)) {
+      this.root.append(this.buildCageLayer(onDiagonal, windows));
     }
   }
 
-  /** A small dashed cage in every diagonal cell, in one SVG over the board. */
-  private buildDiagonalCages(cells: Set<number>): SVGSVGElement {
+  /** Dashed cages marking diagonal cells and windows, in one SVG overlay. */
+  private buildCageLayer(cells: Set<number>, windows: number[][]): SVGSVGElement {
     const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('class', 'diagonals');
+    svg.setAttribute('class', 'cage-layer');
     svg.setAttribute('viewBox', '0 0 9 9');
     svg.setAttribute('preserveAspectRatio', 'none');
     svg.setAttribute('aria-hidden', 'true');
+    const winInset = 0.08;
+    for (const w of windows) {
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('class', 'window-cage');
+      rect.setAttribute('x', String(colOf(w[0]) + winInset));
+      rect.setAttribute('y', String(rowOf(w[0]) + winInset));
+      rect.setAttribute('width', String(3 - 2 * winInset));
+      rect.setAttribute('height', String(3 - 2 * winInset));
+      svg.append(rect);
+    }
     const inset = 0.1;
     for (const c of cells) {
       const rect = document.createElementNS(SVG_NS, 'rect');

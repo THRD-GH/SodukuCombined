@@ -83,9 +83,17 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     isOn: () => boolean,
     toggle: () => void,
   ): HTMLButtonElement => {
-    const btn = el('button', { class: 'vopt', role: 'switch', title, 'aria-label': `${label} — ${title}` }, label);
+    // The whole row is the button; the switch beside the label shows state.
+    const knob = el('span', { class: 'switch', 'aria-hidden': 'true' });
+    const btn = el(
+      'button',
+      { class: 'vopt', role: 'switch', title, 'aria-label': `${label} — ${title}` },
+      el('span', {}, label),
+      knob,
+    );
     syncs.push(() => {
       btn.classList.toggle('on', isOn());
+      knob.classList.toggle('on', isOn());
       btn.setAttribute('aria-checked', String(isOn()));
     });
     btn.addEventListener('click', () => {

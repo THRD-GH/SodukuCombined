@@ -220,7 +220,8 @@
 }
 
 /* Heavier strokes: thin grey lines are the first thing to disappear. */
-:root[data-theme='contrast'] .diag-cage {
+:root[data-theme='contrast'] .diag-cage,
+:root[data-theme='contrast'] .window-cage {
   stroke-width: 0.07;
 }
 
@@ -464,9 +465,9 @@ body {
  * over all backgrounds, and the digits sit above the lot.
  */
 
-/* Small cages marking the diagonal cells when the Colour variant owns the
-   washes. Over the tints, under the digits. */
-.diagonals {
+/* Cages marking diagonal cells and hyper/percent windows when the Colour
+   variant owns the washes. Over the tints, under the digits. */
+.cage-layer {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -475,7 +476,8 @@ body {
   z-index: 0;
 }
 
-.diag-cage {
+.diag-cage,
+.window-cage {
   fill: none;
   stroke: var(--line-strong);
   stroke-width: 0.04;
@@ -895,7 +897,11 @@ body {
 }
 
 .vopt {
-  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px 7px 10px;
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -911,7 +917,6 @@ body {
 }
 
 .vopt.on {
-  background: var(--accent-dim);
   border-color: var(--accent);
   color: var(--text);
 }
@@ -920,16 +925,19 @@ body {
   background: var(--accent-dim);
 }
 
-/* A tick gutter, so on/off does not ride on colour alone. */
-.vopt::before {
-  content: '';
-  display: inline-block;
-  width: 1em;
+/* The switch is smaller here than on the settings screen: six rows of it. */
+.vopt .switch {
+  width: 36px;
+  height: 20px;
 }
 
-.vopt.on::before {
-  content: '✓';
-  color: var(--accent);
+.vopt .switch::after {
+  width: 14px;
+  height: 14px;
+}
+
+.vopt .switch.on::after {
+  transform: translateX(16px);
 }
 
 .picker-preview {
@@ -964,7 +972,8 @@ body {
 .pv-region { stroke: var(--line-strong); stroke-width: 0.16; stroke-linecap: square; }
 .pv-frame { fill: none; stroke: var(--line-strong); stroke-width: 0.12; }
 .pv-diag-fill { fill: var(--diag-bg); }
-.pv-diag-cage { fill: none; stroke: var(--line-strong); stroke-width: 0.05; stroke-dasharray: 0.16 0.11; }
+.pv-diag-cage,
+.pv-window-cage { fill: none; stroke: var(--line-strong); stroke-width: 0.05; stroke-dasharray: 0.16 0.11; }
 .pv-window { fill: none; stroke: var(--window-line); stroke-width: 0.09; }
 
 .pv-clr-0 { fill: rgb(var(--hue-0) / var(--clr-alpha)); }
