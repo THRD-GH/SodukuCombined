@@ -10,7 +10,7 @@ import { bindTap } from './pointer.ts';
 import { pips, stars } from './stars.ts';
 import type { AppContext } from './app-context.ts';
 import { openActionMenu } from './action-menu.ts';
-import { openLevelInfo } from './level-info.ts';
+import { LEVEL_LEADS, openLevelInfo } from './level-info.ts';
 import { openUnfinishedPicker } from './unfinished-picker.ts';
 import { openTutorial } from './tutorial.ts';
 import { openTechniqueGuide } from './technique-guide.ts';
@@ -154,7 +154,12 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     { class: 'source new play-big' },
     el('span', { class: 'source-name' }, 'Play Random'),
   );
-  const pickBtn = el('button', { class: 'btn pick-wide' }, 'Play No.');
+  const pickBtn = el(
+    'button',
+    { class: 'source new play-big' },
+    el('span', { class: 'source-name' }, 'Play #'),
+  );
+  const levelLead = el('p', { class: 'level-lead' });
   const poolLeft = el('p', { class: 'pool-left' });
   pickBtn.addEventListener('click', () =>
     openPicker(ctx, { ...ctx.settings.variants }, ctx.settings.level),
@@ -173,6 +178,7 @@ export function buildMenu(ctx: AppContext): HTMLElement {
       el('span', { class: 'name' }, LEVEL_NAMES[level]),
       el('span', { class: 'level-info-badge', 'aria-hidden': 'true' }, '?'),
     );
+    levelLead.textContent = LEVEL_LEADS[level];
     const left = unplayedNumbers(ctx.history, variants, level, ctx.poolSize).length;
     const stat = levelStats(ctx.history, variants, level, ctx.poolSize);
     poolLeft.textContent =
@@ -190,8 +196,9 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     el(
       'div',
       { class: 'level-row' },
-      el('div', { class: 'dial-col' }, dialLabel, dial.root),
-      el('div', { class: 'play-col' }, playBtn, pickBtn, poolLeft),
+      el('div', { class: 'dial-col' }, el('p', { class: 'col-title' }, 'Difficulty'), dial.root),
+      el('div', { class: 'level-desc' }, dialLabel, levelLead, poolLeft),
+      el('div', { class: 'play-col' }, playBtn, pickBtn),
     ),
   );
 
