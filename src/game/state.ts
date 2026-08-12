@@ -1,7 +1,6 @@
 import { CELLS, bit, maskToDigit, popcount } from '../core/grid.ts';
 import { buildGeometry } from '../core/geometry.ts';
 import type { Geometry } from '../core/geometry.ts';
-import { propagatedCandidates } from '../core/solver.ts';
 import { nextStep } from '../core/techniques.ts';
 import type { Step } from '../core/techniques.ts';
 import type { Puzzle, PuzzleId } from '../core/types.ts';
@@ -298,16 +297,11 @@ export class Game {
     this.checks = 0;
   }
 
-  /** Candidate masks from the entries placed, pinned and propagated. */
+  /** Candidate masks from the entries placed, pinned and unpropagated. */
   private startFromValues(): Uint16Array {
     const start = new Uint16Array(CELLS).fill(0b111111111);
     for (let i = 0; i < CELLS; i++) if (this.values[i] !== 0) start[i] = bit(this.values[i]);
     return start;
-  }
-
-  /** Candidates a strong solver can still justify from the answers placed. */
-  logicalCandidates(): Uint16Array | null {
-    return propagatedCandidates(this.geometry, this.startFromValues());
   }
 
   /**
@@ -363,15 +357,27 @@ export class Game {
   }
 
   /**
-   * Pencil in every candidate the solver can still justify, for each empty
-   * cell. One move, so a single undo takes the lot back.
+   * Pencil in the rule-visible candidates for every empty cell: the digits
+   * not already placed in anything the cell sees. Deliberately no solver
+   * behind this — running the technique stack to a fixed point *solves* the
+   * grid on the easier levels, and an aid that writes the answer into every
+   * cell as its lone pencil mark is a spoiler wearing an aid's clothes.
+   * One move, so a single undo takes the lot back.
    *
-   * Returns -1 if the grid contradicts itself — that means an entry is wrong,
-   * and filling from an impossible position would write nonsense.
+   * Returns -1 if some empty cell has no candidate at all — an entry on the
+   * board must be wrong, and filling from there would write nonsense.
    */
   fillAllCandidates(): number {
-    const candidates = this.logicalCandidates();
-    if (candidates === null) return -1;
+    const candidates = new Uint16Array(CELLS);
+    for (let i = 0; i < CELLS; i++) {
+      if (this.values[i] !== 0) continue;
+      let mask = 0b111111111;
+      for (const p of this.geometry.peers[i]) {
+        if (this.values[p] !== 0) mask &= ~bit(this.values[p]);
+      }
+      if (mask === 0) return -1;
+      candidates[i] = mask;
+    }
 
     const targets: number[] = [];
     for (let i = 0; i < CELLS; i++) {
