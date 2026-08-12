@@ -297,18 +297,77 @@ export function digClues(
    * survived because their partner was load-bearing; taking those singly
    * digs meaningfully deeper, and depth is where the harder techniques
    * start being forced.
+   *
+   * Reaching this line means the level's technique has not been forced yet
+   * (hardEnough returns the moment it is), so for every level above Gentle
+   * the floor stops mattering here: depth is the only lever that adds
+   * demand, and the constraint-rich combos routinely arrive at their scaled
+   * floor still solving on singles. Dig until hardness or exhaustion. Only
+   * Gentle keeps its floor — it wants a populated board, and score 0 is
+   * already what it asked for.
    */
-  if (level >= 3) {
+  if (want > 0) {
     const singles = shuffle(
       Array.from({ length: CELLS }, (_, i) => i).filter((i) => givens[i] !== 0),
       rnd,
     );
     for (const cell of singles) {
-      if (count <= floor) break;
       if (tryRemove([cell]) && hardEnough()) return givens;
     }
   }
   return givens;
+}
+
+/**
+ * Hill-climb a dug puzzle towards its wanted rung by swapping givens: put
+ * one back, take a different one out, keep the swap when the rating does
+ * not drop. Fresh restarts almost never land on hard instances of the
+ * constraint-rich combos — so much solving power hangs off the extra units
+ * that random minimal puzzles nearly all fall to singles — but the
+ * neighbourhood of a minimal puzzle is dense with sibling puzzles, and
+ * drifting across the equal-score plateau finds the harder ones. Equal
+ * scores are accepted for exactly that reason.
+ */
+export function hardenBySwaps(
+  geom: Geometry,
+  solution: number[],
+  start: number[],
+  level: Level,
+  rnd: () => number,
+  iterations: number,
+): { givens: number[]; score: number } {
+  const cap = LEVEL_TECHNIQUE_CAP[level];
+  const want = level - 1;
+  const givens = [...start];
+  let score = difficultyScore(classify(geom, givens, 8000));
+  let best = [...givens];
+  let bestScore = score;
+
+  for (let i = 0; i < iterations && bestScore < want; i++) {
+    const present: number[] = [];
+    const absent: number[] = [];
+    for (let c = 0; c < CELLS; c++) (givens[c] !== 0 ? present : absent).push(c);
+    if (present.length === 0 || absent.length === 0) break;
+
+    const add = absent[Math.floor(rnd() * absent.length)];
+    const drop = present[Math.floor(rnd() * present.length)];
+    givens[add] = solution[add];
+    givens[drop] = 0;
+
+    const legal = isUnique(geom, givens, 12000) && solvableWithin(geom, givens, cap);
+    const swapped = legal ? difficultyScore(classify(geom, givens, 8000)) : -1;
+    if (swapped < score) {
+      givens[add] = 0;
+      givens[drop] = solution[drop];
+      continue;
+    }
+    score = swapped;
+    if (swapped > bestScore) {
+      bestScore = swapped;
+      best = [...givens];
+    }
+  }
+  return { givens: best, score: bestScore };
 }
 
 // ------------------------------------------------------------------ assembly
@@ -340,11 +399,18 @@ export function generatePuzzle(variants: Variants, level: Level, number: number)
   let best: { geom: Geometry; givens: number[]; solution: number[]; score: number } | null = null;
   let bestDistance = Infinity;
 
-  // Exact rung or bust for a while, then settle for the next rung over —
-  // the heavy combos can spend half a minute chasing a rung that this seed
-  // simply will not produce, and one step off is a fine puzzle.
+  /*
+   * Exact rung or bust for a while, then settle for the next rung over —
+   * the heavy combos can spend half a minute chasing a rung that this seed
+   * simply will not produce, and one step off is a fine puzzle. How long
+   * "a while" is depends on what an attempt costs: a classic-geometry
+   * attempt is milliseconds, so it affords far more grid exploration than
+   * the five-variant stack before settling.
+   */
+  const light = !variants.jigsaw && !variants.colour && !variants.hyper;
+  const settleNear = light ? 20 : 8;
   for (let attempt = 0; attempt < 48 && bestDistance > 0; attempt++) {
-    if (attempt >= 8 && bestDistance <= 1) break;
+    if (attempt >= settleNear && bestDistance <= 1) break;
     if (attempt >= 24 && bestDistance <= 2) break;
     const boxes = variants.jigsaw ? carveJigsaw(rnd) : classicBoxes();
     if (boxes === null) continue;
@@ -367,6 +433,24 @@ export function generatePuzzle(variants: Variants, level: Level, number: number)
   }
 
   if (!best) throw new Error(`could not generate ${variantCode(variants)}${level}-${number}`);
+
+  /*
+   * Still short of the rung after every attempt: swap-harden the best
+   * candidate. One bounded run at the end rather than one per attempt — the
+   * attempt loop is for finding a workable base cheaply, the climb is for
+   * finishing the job, and doing it 48 times over would burn a minute on
+   * the heavy stacks for nothing. Iteration-bounded, never clock-bounded:
+   * the same seed must build the same puzzle on every device.
+   */
+  if (best.score < want) {
+    // More climbing where checks are cheap: a classic board affords twice
+    // the iterations of the five-variant stack for the same wall-clock.
+    const iterations = Math.min(400, Math.round(10000 / best.geom.units.length));
+    const hardened = hardenBySwaps(best.geom, best.solution, best.givens, level, rnd, iterations);
+    if (hardened.score > best.score) {
+      best = { ...best, givens: hardened.givens, score: hardened.score };
+    }
+  }
   return {
     variants,
     boxes: best.geom.boxes,
