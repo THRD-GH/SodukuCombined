@@ -175,8 +175,8 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     const variants = { ...ctx.settings.variants };
     clear(dialLabel);
     dialLabel.append(
-      stars(level, 11),
       el('span', { class: 'name' }, LEVEL_NAMES[level]),
+      stars(level, 11),
       el('span', { class: 'level-info-badge', 'aria-hidden': 'true' }, '?'),
     );
     levelLead.textContent = LEVEL_LEADS[level];
