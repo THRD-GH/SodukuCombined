@@ -1,6 +1,7 @@
 import { LEVELS, LEVEL_NAMES } from '../core/generator.ts';
 import type { Level, Variants } from '../core/types.ts';
-import { VARIANT_NAMES, formatPuzzleId, variantLabel } from '../core/types.ts';
+import { NO_VARIANTS, VARIANT_NAMES, formatPuzzleId, variantLabel } from '../core/types.ts';
+import { boardPreview } from './preview.ts';
 import { allSaves, levelStats, saveSettings, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, clear, el, formatTime } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
@@ -35,49 +36,64 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     ),
   );
 
-  // ------------------------------------------------------------ variant chips
+  // ----------------------------------------------------------- game picker
+  /*
+   * The game is picked by eye, not by name: a live preview shows the exact
+   * board the current mix produces, and each variant card carries its own
+   * mini board so what a toggle *means* is visible before it is pressed.
+   */
+  const previewBox = el('div', { class: 'game-preview' });
   const comboLabel = el('p', { class: 'combo-label' });
-  const chipRow = el('div', { class: 'variant-chips', role: 'group', 'aria-label': 'Variants' });
+  const cardRow = el('div', { class: 'vcards', role: 'group', 'aria-label': 'Variants' });
   const levelList = el('div', { class: 'levels' });
 
   const describe: Record<keyof Variants, string> = {
     x: 'both main diagonals hold 1-9',
     jigsaw: 'irregular regions replace the boxes',
-    hyper: 'four extra shaded boxes',
-    colour: 'nine colour groups each hold 1-9',
+    hyper: 'four extra windows hold 1-9',
+    colour: 'nine colour groups hold 1-9',
+  };
+
+  const redrawPreview = (): void => {
+    clear(previewBox);
+    previewBox.append(boardPreview(ctx.settings.variants));
+    comboLabel.textContent = variantLabel(ctx.settings.variants);
   };
 
   const redrawLevels = (): void => {
-    comboLabel.textContent = variantLabel(ctx.settings.variants);
     clear(levelList);
     for (const level of LEVELS) levelList.append(buildLevelPanel(ctx, level));
   };
 
   for (const key of Object.keys(VARIANT_NAMES) as (keyof Variants)[]) {
-    const chip = el(
+    const single: Variants = { ...NO_VARIANTS, [key]: true };
+    const card = el(
       'button',
       {
-        class: 'chip',
+        class: 'vcard',
         role: 'switch',
         title: describe[key],
         'aria-label': `${VARIANT_NAMES[key]} — ${describe[key]}`,
       },
-      VARIANT_NAMES[key],
+      boardPreview(single),
+      el('span', {}, VARIANT_NAMES[key]),
     );
     const sync = (): void => {
-      chip.classList.toggle('on', ctx.settings.variants[key]);
-      chip.setAttribute('aria-checked', String(ctx.settings.variants[key]));
+      card.classList.toggle('on', ctx.settings.variants[key]);
+      card.setAttribute('aria-checked', String(ctx.settings.variants[key]));
     };
-    chip.addEventListener('click', () => {
+    card.addEventListener('click', () => {
       ctx.settings.variants[key] = !ctx.settings.variants[key];
       saveSettings(ctx.settings);
       sync();
+      redrawPreview();
       redrawLevels();
     });
     sync();
-    chipRow.append(chip);
+    cardRow.append(card);
   }
-  screen.append(chipRow, comboLabel);
+  screen.append(previewBox, comboLabel, cardRow);
+  redrawPreview();
 
   // ---------------------------------------------------------------- resume
   const resumeBtn = el('button', { class: 'btn primary wide' });

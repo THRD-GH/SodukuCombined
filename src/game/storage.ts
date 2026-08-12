@@ -45,7 +45,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   allowSingleCandidates: false,
-  theme: 'night',
+  theme: 'day',
   keypadSide: 'left',
   highlightPeers: true,
   highlightSameDigit: true,

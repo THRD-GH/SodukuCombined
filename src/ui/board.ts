@@ -52,8 +52,20 @@ export class Board {
     const onDiagonal = new Set<number>();
     if (variants.x) for (const diag of diagonalCells()) for (const c of diag) onDiagonal.add(c);
 
-    const inWindow = new Set<number>();
-    if (variants.hyper) for (const w of windowCells()) for (const c of w) inWindow.add(c);
+    /** Which window a cell sits in, for the per-window tint. */
+    const windowOf = new Map<number, number>();
+    if (variants.hyper) {
+      windowCells().forEach((w, k) => w.forEach((c) => windowOf.set(c, k)));
+    }
+
+    /*
+     * Structural tints — a unique colour per jigsaw region, per window, and
+     * a wash along the diagonals — only while the Colour variant is off.
+     * With it on, cell colour *is* the rule, and a second colour system on
+     * the same board would make both unreadable; structure falls back to
+     * borders, keylines and lines, which stay on regardless.
+     */
+    const structural = !variants.colour;
 
     /*
      * Nine real rows, so the grid reports itself the way a screen reader
@@ -79,9 +91,16 @@ export class Board {
        */
       if (c !== 0 && puzzle.boxes[i] !== puzzle.boxes[i - 1]) classes.push('reg-l');
       if (r !== 0 && puzzle.boxes[i] !== puzzle.boxes[i - 9]) classes.push('reg-t');
-      if (variants.x && onDiagonal.has(i)) classes.push('diag');
-      if (variants.hyper && inWindow.has(i)) classes.push('window');
+      if (variants.x && onDiagonal.has(i)) {
+        classes.push('diag');
+        if (structural) classes.push('diag-tint');
+      }
+      if (variants.hyper && windowOf.has(i)) {
+        classes.push('window');
+        if (structural) classes.push(`win-${windowOf.get(i)}`);
+      }
       if (variants.colour && puzzle.colours) classes.push(`clr-${puzzle.colours[i]}`);
+      if (structural && variants.jigsaw) classes.push(`reg-c${puzzle.boxes[i]}`);
 
       const big = el('span', { class: 'big' });
       const marksBox = el('span', { class: 'marks' });
