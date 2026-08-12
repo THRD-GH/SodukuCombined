@@ -25,6 +25,7 @@ const SECTIONS: [string, string[]][] = [
     'Entering digits',
     [
       'Tap a cell to select it.',
+      'Two input styles live in Settings. Gestures (the default) works as described below; Classic adds a NOTES switch to the keypad — lit, taps write pencil marks; unlit, taps write answers — and holding a digit does the opposite of the switch.',
       'Tap the keypad to put a digit in that cell. Two or more digits in a cell are candidates (pencil marks).',
       'Tap a candidate again to take it out.',
       'Long-click or double-click a keypad digit to force it in as the answer, clearing any candidates.',

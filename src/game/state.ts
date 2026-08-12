@@ -206,6 +206,17 @@ export class Game {
     }
   }
 
+  /**
+   * Classic-style notes: toggle one pencil mark, nothing else. A note never
+   * promotes itself to an entry, and a cell with an entry takes no notes.
+   */
+  toggleNote(index: number, digit: number): void {
+    if (index < 0 || this.completed || this.isGiven(index)) return;
+    if (this.values[index] !== 0) return;
+    this.record([index]);
+    this.pencils[index] ^= bit(digit);
+  }
+
   /** Long-click or double-click: this digit is the answer, candidates go away. */
   forceDigit(index: number, digit: number, settings: Settings): number {
     if (index < 0 || this.completed || this.isGiven(index)) return 0;

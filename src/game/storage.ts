@@ -18,9 +18,18 @@ export type Theme = 'night' | 'day' | 'contrast';
 /** Which side of the controls the number keys sit on. */
 export type KeypadSide = 'left' | 'right';
 
+/**
+ * How the keypad writes into a cell. 'gesture' is the original scheme: a tap
+ * toggles candidates and the deliberate gestures write the answer. 'classic'
+ * is the style most sudoku apps use: a NOTES switch chooses what a tap means.
+ */
+export type InputStyle = 'gesture' | 'classic';
+
 export interface Settings {
   /** When on, a tapped digit is always a candidate — entries need a long-click. */
   allowSingleCandidates: boolean;
+  /** Which of the two keypad schemes is in force. */
+  inputStyle: InputStyle;
   /** Which palette to draw. 'contrast' is the accessible high-contrast one. */
   theme: Theme;
   /** Which side the keypad sits on, with the other buttons across from it. */
@@ -47,6 +56,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   allowSingleCandidates: false,
+  inputStyle: 'gesture',
   theme: 'day',
   keypadSide: 'left',
   highlightPeers: true,
@@ -119,6 +129,7 @@ export const loadSettings = (): Settings => {
     ...stored,
     variants: { ...NO_VARIANTS, ...(stored.variants ?? {}) },
     level,
+    inputStyle: stored.inputStyle === 'classic' ? 'classic' : 'gesture',
   };
 };
 export const saveSettings = (s: Settings): void => write(KEY.settings, s);

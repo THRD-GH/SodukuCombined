@@ -1,5 +1,5 @@
 import { exportBackup, importBackup, saveSettings } from '../game/storage.ts';
-import type { KeypadSide, Settings, Theme } from '../game/storage.ts';
+import type { InputStyle, KeypadSide, Settings, Theme } from '../game/storage.ts';
 import { clear, el } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import type { AppContext } from './app-context.ts';
@@ -74,6 +74,11 @@ const KEYPAD_SIDES: { value: KeypadSide; label: string }[] = [
   { value: 'right', label: 'Right' },
 ];
 
+const INPUT_STYLES: { value: InputStyle; label: string }[] = [
+  { value: 'gesture', label: 'Gestures' },
+  { value: 'classic', label: 'Classic' },
+];
+
 /**
  * A row of buttons where exactly one is on — used for the settings that are a
  * choice rather than a switch.
@@ -129,6 +134,20 @@ export function openSettings(ctx: AppContext): void {
             ctx.settings.theme = theme;
             saveSettings(ctx.settings);
             ctx.applyTheme();
+          },
+        ),
+      ),
+      stacked(
+        'Input style',
+        'Gestures: a tap toggles candidates, and holding (or double-tapping) a digit writes it in as the answer. Classic: a NOTES switch on the keypad chooses what a tap writes, and holding a digit does the opposite of the switch.',
+        picker(
+          INPUT_STYLES,
+          () => ctx.settings.inputStyle,
+          (style) => {
+            ctx.settings.inputStyle = style;
+            saveSettings(ctx.settings);
+            // The play screen shows or hides its NOTES switch off this.
+            ctx.refreshBoard();
           },
         ),
       ),

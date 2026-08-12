@@ -823,6 +823,13 @@ body {
   padding: 12px 4px;
 }
 
+/* The classic style's NOTES switch, lit while taps write pencil marks. */
+.notes-key.on {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 .timer {
   border-radius: 5px;
   border: 1px solid var(--line);

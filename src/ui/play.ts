@@ -41,6 +41,14 @@ export class PlayScreen {
   private titlebar = el('div', { class: 'titlebar with-clock' });
   private pauseBtn = el('button', { class: 'pause-btn', 'aria-label': 'Pause', title: 'Pause' });
 
+  /** Classic input style only: whether a tap writes a note or the answer. */
+  private notesMode = false;
+  private notesBtn = el(
+    'button',
+    { class: 'key clear notes-key', 'aria-label': 'Notes mode', title: 'Notes: taps write pencil marks' },
+    'NOTES',
+  );
+
   private ticker: number | undefined;
   private lastTick = 0;
   private paused = false;
@@ -154,7 +162,7 @@ export class PlayScreen {
         'div',
         { class: 'controls-left' },
         numpad,
-        el('div', { class: 'under-keys' }, clearKey, this.undoPair),
+        el('div', { class: 'under-keys' }, clearKey, this.notesBtn, this.undoPair),
       ),
       el('div', { class: 'controls-right' }, this.buildActions()),
     );
@@ -175,6 +183,8 @@ export class PlayScreen {
       onLong: () => this.doClear(),
       onDouble: () => this.doClear(),
     });
+
+    this.notesBtn.addEventListener('click', () => this.toggleNotes());
 
     bindTap(this.timerBox, {
       onTap: () => {
@@ -255,6 +265,29 @@ export class PlayScreen {
     this.afterMove();
   }
 
+  private get classic(): boolean {
+    return this.ctx.settings.inputStyle === 'classic';
+  }
+
+  private toggleNotes(): void {
+    this.notesMode = !this.notesMode;
+    this.render();
+  }
+
+  /** Classic style: a tap obeys the NOTES switch. */
+  private classicTap(digit: number, notes: boolean): void {
+    const sel = this.game.selected;
+    if (notes) {
+      this.game.toggleNote(sel, digit);
+    } else if (this.game.values[sel] === digit) {
+      // Tapping the digit already written toggles it back out.
+      this.game.clearCell(sel);
+    } else {
+      this.game.forceDigit(sel, digit, this.ctx.settings);
+    }
+    this.afterMove();
+  }
+
   private tapDigit(digit: number): void {
     if (this.game.selected < 0) {
       // No cell in hand: light up every placed copy of the digit instead.
@@ -264,6 +297,10 @@ export class PlayScreen {
     }
     if (this.game.isGiven(this.game.selected)) {
       toast('That cell is a given clue');
+      return;
+    }
+    if (this.classic) {
+      this.classicTap(digit, this.notesMode);
       return;
     }
     this.recentTaps.push({ digit, cell: this.game.selected, at: performance.now() });
@@ -278,6 +315,8 @@ export class PlayScreen {
    * forcing the entry — otherwise the toggling would fight the force.
    */
   private doubleDigit(digit: number): void {
+    // The rollback below undoes gesture-style taps; classic taps are final.
+    if (this.classic) return;
     const now = performance.now();
     const cell = this.game.selected;
     let rollback = 0;
@@ -309,6 +348,12 @@ export class PlayScreen {
     }
     if (this.game.isGiven(this.game.selected)) {
       toast('That cell is a given clue');
+      return;
+    }
+    if (this.classic) {
+      // The deliberate gesture does the opposite of the NOTES switch, so
+      // the other kind of mark is always one hold away.
+      this.classicTap(digit, !this.notesMode);
       return;
     }
     const tidied = this.game.forceDigit(this.game.selected, digit, this.ctx.settings);
@@ -731,6 +776,12 @@ export class PlayScreen {
     this.undoBtn.disabled = !this.game.canUndo();
     this.redoBtn.disabled = !this.game.canRedo();
 
+    // The NOTES switch belongs to the classic style; gestures never see it.
+    this.notesBtn.hidden = !this.classic;
+    if (!this.classic) this.notesMode = false;
+    this.notesBtn.classList.toggle('on', this.notesMode);
+    this.notesBtn.setAttribute('aria-pressed', String(this.notesMode));
+
     for (let d = 1; d <= 9; d++) {
       const key = this.keys.get(d);
       if (!key) continue;
@@ -816,6 +867,9 @@ export class PlayScreen {
         break;
       case 'm':
         this.doFillCandidates();
+        break;
+      case 'n':
+        if (this.classic) this.toggleNotes();
         break;
       case 'Escape':
         this.pause();
