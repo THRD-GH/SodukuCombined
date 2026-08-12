@@ -8,7 +8,7 @@
  */
 import { buildGeometry, validRegionMap } from '../src/core/geometry.ts';
 import { generatePuzzle } from '../src/core/generator.ts';
-import { isUnique } from '../src/core/solver.ts';
+import { isUnique, solve } from '../src/core/solver.ts';
 import type { Level, Variants } from '../src/core/types.ts';
 import { NO_VARIANTS, variantCode } from '../src/core/types.ts';
 
@@ -50,6 +50,18 @@ for (const variants of combos) {
         if (p.givens[i] !== 0 && p.givens[i] !== p.solution[i]) problems.push('given contradicts solution');
       }
       if (!isUnique(geom, p.givens, 200000)) problems.push('not unique');
+
+      /*
+       * Independent check with the singles-only solver: exhaustive search
+       * with the shallowest propagation. If a deep technique ever makes an
+       * unsound elimination, generation would ship puzzles this baseline
+       * disagrees with — caught here, not by a player.
+       */
+      const base = solve(geom, p.givens, { maxSolutions: 2, maxDifficulty: 1, nodeLimit: 400000 });
+      if (base.aborted || base.count !== 1) problems.push('baseline disagrees on uniqueness');
+      else if (JSON.stringify(base.solution) !== JSON.stringify(p.solution)) {
+        problems.push('baseline disagrees on solution');
+      }
 
       const again = generatePuzzle(variants, level, 1);
       if (JSON.stringify(again) !== JSON.stringify(p)) problems.push('not deterministic');

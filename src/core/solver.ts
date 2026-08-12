@@ -94,7 +94,13 @@ export function solve(geom: Geometry, givens: number[], opts: SolveOptions = {})
 
 /** True only if the puzzle provably has exactly one solution within the budget. */
 export function isUnique(geom: Geometry, givens: number[], nodeLimit = 20000): boolean {
-  const r = solve(geom, givens, { maxSolutions: 2, nodeLimit });
+  /*
+   * Uniqueness is decided by exhaustive search, so propagation depth is only
+   * a pruning heuristic here — and the cheap tiers prune nearly as well as
+   * the deep ones at a fraction of the cost. The full stack belongs to
+   * classify(), where *which* technique fired is the whole question.
+   */
+  const r = solve(geom, givens, { maxSolutions: 2, nodeLimit, maxDifficulty: 2 });
   return !r.aborted && r.count === 1;
 }
 

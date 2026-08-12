@@ -1732,6 +1732,41 @@ body {
 .tutorial-ready { flex-wrap: wrap; }
 .tutorial-ready span { padding: 9px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); font-size: 12px; font-weight: 750; }
 .tutorial-copy { min-height: 58px; }
+
+/* Technique guide: one page per technique, sized to fit a phone whole. */
+.guide { max-width: 430px; text-align: left; }
+.guide .eyebrow { color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
+.guide-header { display: flex; align-items: center; gap: 8px; margin: 8px 0 6px; }
+.guide-header .stars { display: flex; gap: 1px; }
+.guide-level { font-weight: 800; font-size: 14px; color: var(--text); }
+.guide-technique {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.guide-technique b { color: var(--accent); font-size: 14px; }
+.guide-technique p { margin: 3px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--text); }
+.guide-progress { margin: 8px 0; text-align: center; color: var(--dim); font-size: 11.5px; }
+
+/* Worked example boards inside the guide cards. */
+.tg-example { display: grid; justify-items: center; gap: 4px; margin-top: 8px; }
+/* Capped against the viewport height too, so page + board + buttons fit a
+   phone screen with no inner scrolling. */
+.tg-board { width: min(100%, 250px, 44dvh); aspect-ratio: 1; display: block; background: var(--cell); }
+.tg-rule { stroke: var(--rule); stroke-width: 0.02; }
+.tg-box { stroke: var(--line-strong); stroke-width: 0.07; }
+.tg-frame { fill: none; stroke: var(--line-strong); stroke-width: 0.1; }
+.tg-key { fill: var(--sel); }
+.tg-link { fill: var(--same); }
+.tg-board text { font-family: var(--font-ui); text-anchor: middle; }
+.tg-big { font-size: 0.62px; font-weight: 700; fill: var(--text); }
+.tg-cand { font-size: 0.3px; font-weight: 700; fill: var(--mark); }
+.tg-hit { font-size: 0.3px; font-weight: 800; fill: var(--accent); }
+.tg-strike { font-size: 0.3px; font-weight: 800; fill: var(--error); }
+.tg-slash { stroke: var(--error); stroke-width: 0.045; stroke-linecap: round; }
+.tg-caption { margin: 0; font-size: 11.5px; color: var(--dim); text-align: center; }
+.guide .tutorial-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .tutorial-progress { color: var(--accent); letter-spacing: 5px; margin: 12px 0; }
 .tutorial-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .tutorial-skip {

@@ -27,25 +27,24 @@ export const LEVEL_NAMES: Record<Level, string> = {
  * altogether, how much trial and error is left takes over.
  */
 export function difficultyScore(c: Classification): number {
-  if (!c.logical) return c.guesses <= 4 ? 4 : 5;
-  if (c.hardest <= 1) return 0;
-  if (c.hardest === 2) return 1;
-  if (c.hardest === 3) return 2;
-  return 3;
+  // Beyond the whole named stack counts as the top of the ladder.
+  if (!c.logical) return 5;
+  return Math.min(5, Math.max(0, c.hardest - 1));
 }
 
 /**
- * How solvable the puzzle must stay while clues are removed. Levels 1..4 are
- * finishable by techniques alone, capped at the level's rung; 5 and 6 are
- * allowed past the stack into trial and error.
+ * How solvable the puzzle must stay while clues are removed: every level is
+ * finishable by named techniques alone, capped at the level's tier of the
+ * stack. There is no guessing tier — Brutal means jellyfish, W-wings and
+ * turbot fish, not trial and error.
  */
-const LEVEL_TECHNIQUE_CAP: Record<Level, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 0, 6: 0 };
+const LEVEL_TECHNIQUE_CAP: Record<Level, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
 
 /**
  * How far the dig goes, per level. Easy levels stop while the board is still
  * comfortably populated — a Gentle grid with 22 givens rates as easy but
  * looks like a cliff face — while the top levels dig to the practical floor,
- * which is where forced guessing lives.
+ * which is where the deep techniques start being forced.
  */
 const GIVENS_TARGET: Record<Level, number> = { 1: 38, 2: 31, 3: 25, 4: 23, 5: 22, 6: 20 };
 
@@ -266,16 +265,14 @@ export function digClues(
    * floor entirely and dig until nothing more comes out, because forced
    * guessing lives at the bottom of the dig.
    */
-  const scaled = Math.round((GIVENS_TARGET[level] * 27) / geom.units.length);
-  const floor = cap === 0 ? Math.max(0, scaled - 4) : scaled;
+  const floor = Math.round((GIVENS_TARGET[level] * 27) / geom.units.length);
   const givens = [...solution];
   let count = CELLS;
 
   const tryRemove = (cells: number[]): boolean => {
     const backup = cells.map((c) => givens[c]);
     for (const c of cells) givens[c] = 0;
-    const keeps =
-      isUnique(geom, givens, 12000) && (cap === 0 || solvableWithin(geom, givens, cap));
+    const keeps = isUnique(geom, givens, 12000) && solvableWithin(geom, givens, cap);
     if (keeps) count -= cells.length;
     else cells.forEach((c, k) => (givens[c] = backup[k]));
     return keeps;
@@ -288,7 +285,7 @@ export function digClues(
    * enough for the question to be worth asking.
    */
   const hardEnough = (): boolean =>
-    cap !== 0 && want > 0 && count < 50 && difficultyScore(classify(geom, givens, 8000)) >= want;
+    want > 0 && count < 50 && difficultyScore(classify(geom, givens, 8000)) >= want;
 
   for (const pair of symmetricOrder(rnd)) {
     if (count - pair.length < floor) break;
