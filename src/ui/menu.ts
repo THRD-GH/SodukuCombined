@@ -1,7 +1,8 @@
-import { LEVELS, LEVEL_NAMES } from '../core/generator.ts';
+import { LEVEL_NAMES } from '../core/generator.ts';
 import type { Level, Variants } from '../core/types.ts';
 import { NO_VARIANTS, VARIANT_NAMES, formatPuzzleId, variantLabel } from '../core/types.ts';
 import { boardPreview } from './preview.ts';
+import { buildLevelDial } from './dial.ts';
 import { allSaves, levelStats, saveSettings, unplayedNumbers } from '../game/storage.ts';
 import { buildStamp, clear, el, formatTime } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
@@ -47,7 +48,6 @@ export function buildMenu(ctx: AppContext): HTMLElement {
   const previewBox = el('div', { class: 'game-preview' });
   const comboLabel = el('p', { class: 'combo-label' });
   const optionCol = el('div', { class: 'voptions', role: 'group', 'aria-label': 'Game type' });
-  const levelList = el('div', { class: 'levels' });
 
   const describe: Record<keyof Variants, string> = {
     x: 'both main diagonals hold 1-9',
@@ -80,17 +80,12 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     );
   };
 
-  const redrawLevels = (): void => {
-    clear(levelList);
-    for (const level of LEVELS) levelList.append(buildLevelPanel(ctx, level));
-  };
-
   const syncs: (() => void)[] = [];
   const changed = (): void => {
     saveSettings(ctx.settings);
     for (const sync of syncs) sync();
     redrawPreview();
-    redrawLevels();
+    redrawPlay();
   };
 
   const option = (
@@ -140,8 +135,69 @@ export function buildMenu(ctx: AppContext): HTMLElement {
       el('div', { class: 'picker-preview' }, previewBox, comboLabel),
     ),
   );
+
+  // ------------------------------------------------------- difficulty + play
+  /*
+   * The difficulty is a dial on the left, its name and stars underneath;
+   * Play and the puzzle-number picker sit on the right and always act on
+   * whatever the dial and the variant switches currently say.
+   */
+  const dialLabel = el('button', {
+    class: 'dial-label',
+    title: 'What this level involves',
+    'aria-label': 'Explain this level',
+  });
+  dialLabel.addEventListener('click', () => openLevelInfo(ctx.settings.level));
+
+  const playBtn = el(
+    'button',
+    { class: 'source new play-big' },
+    el('span', { class: 'source-name' }, 'Play Random'),
+  );
+  const pickBtn = el('button', { class: 'btn pick-wide' }, 'Play No.');
+  const poolLeft = el('p', { class: 'pool-left' });
+  pickBtn.addEventListener('click', () =>
+    openPicker(ctx, { ...ctx.settings.variants }, ctx.settings.level),
+  );
+  bindTap(playBtn, {
+    onTap: () => ctx.playRandom({ ...ctx.settings.variants }, ctx.settings.level),
+    onLong: () => openPicker(ctx, { ...ctx.settings.variants }, ctx.settings.level),
+  });
+
+  const redrawPlay = (): void => {
+    const level = ctx.settings.level;
+    const variants = { ...ctx.settings.variants };
+    clear(dialLabel);
+    dialLabel.append(
+      stars(level, 11),
+      el('span', { class: 'name' }, LEVEL_NAMES[level]),
+      el('span', { class: 'level-info-badge', 'aria-hidden': 'true' }, '?'),
+    );
+    const left = unplayedNumbers(ctx.history, variants, level, ctx.poolSize).length;
+    const stat = levelStats(ctx.history, variants, level, ctx.poolSize);
+    poolLeft.textContent =
+      `${left} of ${ctx.poolSize} games remaining` +
+      (stat.averageMs === null ? '' : ` · avg ${formatTime(stat.averageMs)}`);
+  };
+
+  const dial = buildLevelDial(ctx.settings.level, (level) => {
+    ctx.settings.level = level;
+    saveSettings(ctx.settings);
+    redrawPlay();
+  });
+
+  screen.append(
+    el(
+      'div',
+      { class: 'level-row' },
+      el('div', { class: 'dial-col' }, dialLabel, dial.root),
+      el('div', { class: 'play-col' }, playBtn, pickBtn, poolLeft),
+    ),
+  );
+
   for (const sync of syncs) sync();
   redrawPreview();
+  redrawPlay();
 
   // ---------------------------------------------------------------- resume
   const resumeBtn = el('button', { class: 'btn primary wide' });
@@ -162,72 +218,8 @@ export function buildMenu(ctx: AppContext): HTMLElement {
   refreshResume();
   screen.append(resumeActions);
 
-  screen.append(levelList);
-  redrawLevels();
-
-  screen.append(
-    el(
-      'p',
-      { class: 'hint-line' },
-      'Each puzzle number creates the same grid on every device, for any mix of variants.',
-    ),
-    el('p', { class: 'build-stamp' }, buildStamp()),
-  );
+  screen.append(el('p', { class: 'build-stamp' }, buildStamp()));
   return screen;
-}
-
-/** One level: the difficulty head, then its pool for the current variants. */
-function buildLevelPanel(ctx: AppContext, level: Level): HTMLElement {
-  const variants: Variants = { ...ctx.settings.variants };
-  const row = el(
-    'div',
-    { class: 'level' },
-    el(
-      'button',
-      {
-        class: 'level-head',
-        'aria-label': `Explain level ${level}, ${LEVEL_NAMES[level]}`,
-        title: `What level ${level} involves`,
-      },
-      stars(level, 10),
-      el('span', { class: 'name' }, LEVEL_NAMES[level]),
-      el('span', { class: 'level-info-badge', 'aria-hidden': 'true' }, '?'),
-    ),
-  );
-
-  const levelHead = row.querySelector<HTMLButtonElement>('.level-head');
-  levelHead?.addEventListener('click', () => openLevelInfo(level));
-
-  const size = ctx.poolSize;
-  const left = unplayedNumbers(ctx.history, variants, level, size).length;
-  const stat = levelStats(ctx.history, variants, level, size);
-  const button = el(
-    'button',
-    { class: 'source new' },
-    el('span', { class: 'source-name' }, 'Play'),
-    el(
-      'span',
-      { class: 'source-meta' },
-      `${left} left${stat.averageMs === null ? '' : ` · ${formatTime(stat.averageMs)}`}`,
-    ),
-  );
-  bindTap(button, {
-    onTap: () => ctx.playRandom(variants, level),
-    onLong: () => openPicker(ctx, variants, level),
-  });
-
-  // Picking a specific puzzle used to need a long-press, which nobody finds
-  // on a phone. It gets its own button.
-  const pick = el('button', {
-    class: 'pick',
-    title: 'Choose a puzzle number',
-    'aria-label': `Choose puzzle number for level ${level}`,
-  });
-  pick.textContent = '#';
-  pick.addEventListener('click', () => openPicker(ctx, variants, level));
-
-  row.append(el('div', { class: 'source-row' }, button, pick));
-  return row;
 }
 
 /** Puzzle numbers per range tab. */

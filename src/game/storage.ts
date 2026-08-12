@@ -41,6 +41,8 @@ export interface Settings {
   showTimer: boolean;
   /** The variant toggles as last left on the menu. */
   variants: Variants;
+  /** The difficulty dial as last left on the menu. */
+  level: Level;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -57,6 +59,7 @@ export const DEFAULT_SETTINGS: Settings = {
   clearNeedsLongClick: true,
   showTimer: true,
   variants: { ...NO_VARIANTS },
+  level: 1,
 };
 
 export interface PuzzleRecord {
@@ -107,10 +110,15 @@ function write(key: string, value: unknown): void {
 
 export const loadSettings = (): Settings => {
   const stored = read<Partial<Settings>>(KEY.settings, {});
+  const level: Level =
+    typeof stored.level === 'number' && stored.level >= 1 && stored.level <= 6
+      ? (Math.round(stored.level) as Level)
+      : DEFAULT_SETTINGS.level;
   return {
     ...DEFAULT_SETTINGS,
     ...stored,
     variants: { ...NO_VARIANTS, ...(stored.variants ?? {}) },
+    level,
   };
 };
 export const saveSettings = (s: Settings): void => write(KEY.settings, s);
