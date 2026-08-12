@@ -1,4 +1,4 @@
-import { colOf, maskToDigits, rowOf } from '../core/grid.ts';
+import { colOf, rowOf } from '../core/grid.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId, variantLabel } from '../core/types.ts';
 import { Game } from '../game/state.ts';
@@ -88,7 +88,10 @@ export class PlayScreen {
     menuBtn.addEventListener('click', () => this.openMenu());
 
     this.idLabel.textContent = formatPuzzleId(this.game.id);
-    this.idLabel.title = variantLabel(this.game.puzzle.variants);
+    // The rules in play, said openly — it used to echo the selected cell's
+    // candidates, which the cell already shows. Resuming an old save, this
+    // line is what tells you which game you are in.
+    this.candidateLine.textContent = variantLabel(this.game.puzzle.variants);
 
     this.titlebar.append(menuBtn, this.idLabel, this.candidateLine);
     this.root.append(this.titlebar, this.board.root, this.buildControls());
@@ -101,10 +104,17 @@ export class PlayScreen {
       {
         onTap: (i) => {
           this.game.selected = i;
+          // Selecting a cell hands the same-digit highlight back to it.
+          this.board.focusDigit(0);
           this.render();
         },
-        // Long-press any cell pauses, matching the original control scheme.
-        onLong: () => this.pause(),
+        /*
+         * Long-press clears the cell — the deliberate gesture means the
+         * deliberate act here, as it does on the keypad. It used to pause,
+         * a habit inherited from the killer game, where a thumb resting on
+         * the board mid-think kept blanking the puzzle.
+         */
+        onLong: (i) => this.longClearCell(i),
         onDouble: () => undefined,
         // A hurried tap that lands half in the next cell still means "select",
         // and the cursor moves on touch-down so a cancelled pointer — the
@@ -268,9 +278,24 @@ export class PlayScreen {
     toast(`${what} is set to long-click — hold the button`);
   }
 
+  /** Long-press on the board: select the cell and empty it. */
+  private longClearCell(index: number): void {
+    if (index < 0) return;
+    this.game.selected = index;
+    this.board.focusDigit(0);
+    if (this.game.isGiven(index)) {
+      this.render();
+      return;
+    }
+    this.game.clearCell(index);
+    this.afterMove();
+  }
+
   private tapDigit(digit: number): void {
     if (this.game.selected < 0) {
-      toast('Choose a cell first');
+      // No cell in hand: light up every placed copy of the digit instead.
+      this.board.focusDigit(digit);
+      this.render();
       return;
     }
     if (this.game.isGiven(this.game.selected)) {
@@ -314,7 +339,8 @@ export class PlayScreen {
 
   private forceDigit(digit: number): void {
     if (this.game.selected < 0) {
-      toast('Choose a cell first');
+      this.board.focusDigit(digit);
+      this.render();
       return;
     }
     if (this.game.isGiven(this.game.selected)) {
@@ -753,23 +779,12 @@ export class PlayScreen {
       key.setAttribute('aria-label', left > 0 ? `Digit ${d}, ${left} left` : `Digit ${d}, all placed`);
     }
 
-    clear(this.candidateLine);
-    const sel = this.game.selected;
-    if (sel >= 0) {
-      const marks = maskToDigits(this.game.pencils[sel]);
-      if (this.game.values[sel] !== 0) {
-        this.candidateLine.append(el('b', {}, String(this.game.values[sel])));
-      } else if (marks.length > 0) {
-        this.candidateLine.append(el('span', { class: 'cands' }, `(${marks.join(' ')})`));
-      }
-    }
   }
 
   // ------------------------------------------------------------------- menus
 
   private openMenu(): void {
     openActionMenu('Menu', [
-      { label: 'Fill all candidates', run: () => this.doFillCandidates() },
       { label: 'Rewind to before a mistake', run: () => {
         if (this.game.wrongCount() === 0) toast('Nothing wrong on the board');
         else this.offerRewind('Rewind');

@@ -31,6 +31,18 @@ export class Board {
   /** Cells a hint is pointing at. Cleared as soon as play resumes. */
   private spotlit = new Set<number>();
 
+  /**
+   * A digit lit up from the keypad with no cell in hand: every placed copy
+   * highlights, which is how you trace a digit across a diagonal or colour
+   * group. Tapping the same digit again — or selecting any cell — clears it.
+   */
+  private digitFocus = 0;
+
+  /** Toggle the keypad digit highlight; 0 always clears it. */
+  focusDigit(digit: number): void {
+    this.digitFocus = digit === this.digitFocus ? 0 : digit;
+  }
+
   /** Draw attention to the cells a hint concerns. Pass [] to clear. */
   spotlight(cells: number[]): void {
     this.spotlit = new Set(cells);
@@ -206,7 +218,12 @@ export class Board {
         // the highlight itself teaches what sees what.
         cls.push('peer');
       }
-      if (this.settings.highlightSameDigit && value !== 0 && selValue !== 0 && value === selValue) {
+      if (
+        value !== 0 &&
+        ((this.settings.highlightSameDigit && selValue !== 0 && value === selValue) ||
+          // The keypad highlight is an explicit ask, so no setting gates it.
+          (this.digitFocus !== 0 && value === this.digitFocus))
+      ) {
         cls.push('same');
       }
       // One candidate left is an answer waiting to be written in — worth
