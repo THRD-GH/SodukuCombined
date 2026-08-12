@@ -70,25 +70,9 @@
     border-radius: 7px;
   }
 
-  .titlebar.with-clock .pause-btn {
-    flex: 0 0 32px;
-    height: 26px;
-    border-radius: 7px;
-  }
-
-  .titlebar.with-clock .pause-btn i {
-    height: 12px;
-    width: 3px;
-  }
-
   /* The candidates line gives up its auto margin to the clock. */
   .titlebar.with-clock .candidates {
     margin-left: 0;
-  }
-
-  /* Empty once the clock and Pause move up into the bar. */
-  .under-actions {
-    display: none;
   }
 
   .screen.play > .controls {
@@ -178,12 +162,7 @@
     font-size: 12.5px;
   }
 
-  .under-keys,
-  .under-actions {
+  .under-keys {
     flex: 0 0 34px;
-  }
-
-  .pause-btn {
-    flex: 0 0 42px;
   }
 }

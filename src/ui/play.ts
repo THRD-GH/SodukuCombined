@@ -38,19 +38,8 @@ export class PlayScreen {
   private keys = new Map<number, HTMLButtonElement>();
   /** Undo and redo share a cell; built here so the controls can place them. */
   private undoPair = el('div', { class: 'undo-pair' });
-  private titlebar = el('div', { class: 'titlebar' });
+  private titlebar = el('div', { class: 'titlebar with-clock' });
   private pauseBtn = el('button', { class: 'pause-btn', 'aria-label': 'Pause', title: 'Pause' });
-  /** Where the clock and the pause button live when the bar is not holding them. */
-  private actionsBox: HTMLElement | null = null;
-  private underActions: HTMLElement | null = null;
-
-  /**
-   * Landscape on a phone: the one layout where the title bar sits beside the
-   * board rather than over it, and where a row of screen is worth more than
-   * tidiness.
-   */
-  private compact = window.matchMedia('(orientation: landscape) and (max-height: 560px)');
-  private onCompactChange = (): void => this.placeClockAndPause();
 
   private ticker: number | undefined;
   private lastTick = 0;
@@ -93,11 +82,10 @@ export class PlayScreen {
     // line is what tells you which game you are in.
     this.candidateLine.textContent = variantLabel(this.game.puzzle.variants);
 
-    this.titlebar.append(menuBtn, this.idLabel, this.candidateLine);
+    // The clock lives in the title bar at every size — it is read, not
+    // pressed, and a bar is where a clock reads well.
+    this.titlebar.append(menuBtn, this.idLabel, this.candidateLine, this.timerBox);
     this.root.append(this.titlebar, this.board.root, this.buildControls());
-
-    this.placeClockAndPause();
-    this.compact.addEventListener('change', this.onCompactChange);
 
     bindTap(
       this.board.root,
@@ -153,12 +141,11 @@ export class PlayScreen {
     this.pauseBtn.addEventListener('click', () => this.pause());
 
     /*
-     * Two columns, each with its own strip underneath (in source order — with
-     * the keypad set to the right they are drawn the other way round):
-     *   keypad          | Check  New
-     *                   | Hint   Restart
-     *                   | Marks  clock
-     *   CLEAR undo/redo | pause
+     * Two columns (in source order — with the keypad set to the right they
+     * are drawn the other way round):
+     *   keypad          | Check    New
+     *                   | Hint     Restart
+     *   CLEAR undo/redo | Compute  pause
      */
     const controls = el(
       'div',
@@ -169,12 +156,7 @@ export class PlayScreen {
         numpad,
         el('div', { class: 'under-keys' }, clearKey, this.undoPair),
       ),
-      el(
-        'div',
-        { class: 'controls-right' },
-        (this.actionsBox = this.buildActions()),
-        (this.underActions = el('div', { class: 'under-actions' }, this.pauseBtn)),
-      ),
+      el('div', { class: 'controls-right' }, this.buildActions()),
     );
 
     bindTap(
@@ -205,24 +187,6 @@ export class PlayScreen {
     return controls;
   }
 
-  /**
-   * The clock and the pause button move into the title bar when the board is
-   * beside it rather than under it. Held landscape a phone has height to spare
-   * nowhere and width to spare everywhere, and those two are the only controls
-   * that read as well in a bar as they do in a grid — so the buttons that are
-   * actually pressed get the room they leave behind.
-   */
-  private placeClockAndPause(): void {
-    if (this.compact.matches) {
-      this.titlebar.append(this.timerBox, this.pauseBtn);
-      this.titlebar.classList.add('with-clock');
-    } else {
-      this.actionsBox?.append(this.timerBox);
-      this.underActions?.append(this.pauseBtn);
-      this.titlebar.classList.remove('with-clock');
-    }
-  }
-
   private buildActions(): HTMLElement {
     const check = el('button', { class: 'btn aid' }, 'Check');
     check.addEventListener('click', () => this.doCheck());
@@ -248,8 +212,8 @@ export class PlayScreen {
 
     // Fill every justifiable candidate — the variant units make hand-marking
     // slow, so the aid earns a button rather than a menu line.
-    const marks = el('button', { class: 'btn aid' }, 'Marks');
-    marks.addEventListener('click', () => this.doFillCandidates());
+    const compute = el('button', { class: 'btn aid' }, 'Compute Candidates');
+    compute.addEventListener('click', () => this.doFillCandidates());
 
     const restart = el('button', { class: 'btn session' }, 'Restart');
     restart.addEventListener('click', () =>
@@ -268,8 +232,8 @@ export class PlayScreen {
       }, 'New puzzle'),
     );
 
-    // Filled column by column: Check/Hint/Marks, then New/Restart/clock.
-    return el('div', { class: 'actions' }, check, hint, marks, next, restart, this.timerBox);
+    // Filled column by column: Check/Hint/Compute, then New/Restart/pause.
+    return el('div', { class: 'actions' }, check, hint, compute, next, restart, this.pauseBtn);
   }
 
   // ------------------------------------------------------------------ input
@@ -742,7 +706,6 @@ export class PlayScreen {
   }
 
   destroy(): void {
-    this.compact.removeEventListener('change', this.onCompactChange);
     this.stop();
     this.pauseNode?.remove();
   }

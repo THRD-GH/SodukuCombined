@@ -313,8 +313,22 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* The clock, at home in the bar: read at a glance, tap to hide the time. */
+.titlebar .timer {
+  flex: 0 0 auto;
+  min-width: 56px;
+  padding: 4px 8px;
+  font-size: 14px;
+  border-radius: 7px;
+}
+
 .titlebar .candidates {
   margin-left: auto;
+  /* A long mix name gives way before the clock does. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   display: flex;
   gap: 5px;
   color: var(--mark);
@@ -666,9 +680,8 @@ body {
   gap: 6px;
 }
 
-/* CLEAR and undo/redo span the keypad; the tally and Pause span the buttons. */
-.under-keys,
-.under-actions {
+/* CLEAR and undo/redo span the keypad. */
+.under-keys {
   display: flex;
   gap: 6px;
   min-width: 0;
@@ -677,12 +690,6 @@ body {
 .under-keys .key.clear,
 .under-keys .undo-pair {
   flex: 1 1 0;
-  min-width: 0;
-  margin: 0;
-}
-
-.under-actions .pause-btn {
-  flex: 1 1 auto;
   min-width: 0;
   margin: 0;
 }
@@ -724,7 +731,6 @@ body {
 }
 
 .pause-btn {
-  flex: 0 0 48px;
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 9px;
