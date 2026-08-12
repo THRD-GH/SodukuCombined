@@ -1,0 +1,308 @@
+import './style.css';
+import './styles/responsive.css';
+import type { Level, PuzzleId, Variants } from './core/types.ts';
+import { formatPuzzleId, variantLabel } from './core/types.ts';
+import { getPuzzle, prefetch } from './game/generate.ts';
+import { registerServiceWorker, setThemeColour } from './game/pwa.ts';
+import { keepScreenAwake } from './game/wakelock.ts';
+import { Game } from './game/state.ts';
+import {
+  POOL_SIZE,
+  clearPuzzleLink,
+  linkedPuzzle,
+  loadHistory,
+  loadSaveFor,
+  loadSettings,
+  unplayedNumbers,
+} from './game/storage.ts';
+import type { History, SavedGame, Settings, Theme } from './game/storage.ts';
+import { clear, el } from './ui/dom.ts';
+import { buildMenu } from './ui/menu.ts';
+import { openHelp } from './ui/help.ts';
+import {
+  closeTopOverlay,
+  onOverlayClose,
+  onOverlayOpen,
+  openOverlay,
+  overlaysOpen,
+  toast,
+} from './ui/overlay.ts';
+import { PlayScreen } from './ui/play.ts';
+import { openSettings } from './ui/settings.ts';
+import { buildStats } from './ui/stats.ts';
+import type { AppContext } from './ui/app-context.ts';
+import { openFirstGameTutorial } from './ui/tutorial.ts';
+
+/** The browser chrome colour that matches each board, for the PWA title bar. */
+const THEME_COLOUR: Record<Theme, string> = {
+  night: '#0a0d10',
+  day: '#dfe4e9',
+  contrast: '#000000',
+};
+
+class App implements AppContext {
+  settings: Settings = loadSettings();
+  history: History = loadHistory();
+  readonly poolSize = POOL_SIZE;
+
+  private root: HTMLElement;
+  private play: PlayScreen | null = null;
+
+  constructor(root: HTMLElement) {
+    this.root = root;
+    this.applyTheme();
+    this.applyKeypadSide();
+
+    this.guardBackButton();
+    document.addEventListener('keydown', (e) => this.play?.handleKey(e));
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.play?.pause();
+    });
+
+    // A shared link names a puzzle outright; honour it instead of the menu.
+    const linked = linkedPuzzle();
+    clearPuzzleLink();
+
+    if (linked === null) this.goMenu();
+    else {
+      this.goMenu();
+      this.playPuzzle(linked);
+    }
+  }
+
+  /**
+   * Installed as a PWA there is no browser chrome, so the phone's back gesture
+   * is the only back there is — and by default it leaves the app entirely,
+   * mid-puzzle. One history entry is kept while anything other than the bare
+   * menu is on screen, and going back spends it: the top panel closes, or the
+   * menu comes back. Only from the bare menu does back leave.
+   *
+   * "While", not "since": the entry is let go the moment it stops being wanted,
+   * however that happened. A panel closed by its own Back button used to leave
+   * the entry standing, and the press that should have left the app was spent
+   * redrawing the menu over itself — no visible answer to the press, so it read
+   * as the app refusing to close until you pressed again.
+   */
+  private guarded = false;
+
+  /**
+   * A back() this app asked for itself, to spend the entry it was holding. The
+   * popstate it causes is not somebody pressing back, and must not be read as
+   * one.
+   */
+  private spending = false;
+
+  /** The bare menu wants no entry; every other screen does. */
+  private onMenu = false;
+
+  private guardBackButton(): void {
+    onOverlayOpen(() => this.armBack());
+    onOverlayClose(() => this.syncGuard());
+    window.addEventListener('popstate', () => {
+      // Our own doing, and already acted on before it was asked for.
+      if (this.spending) {
+        this.spending = false;
+        return;
+      }
+      if (closeTopOverlay()) {
+        // The panel took the press. Whether another entry is wanted for what is
+        // underneath depends on what that is, and the close hook has just asked.
+        this.guarded = false;
+        return;
+      }
+      if (!this.guarded) return;
+      // The press spent the entry; the menu wants none, so nothing to settle.
+      this.guarded = false;
+      this.goMenu();
+    });
+  }
+
+  private armBack(): void {
+    if (this.guarded) return;
+    // Whatever became of the last back() we asked for, this is a fresh entry
+    // and the next popstate belongs to whoever presses back — a browser that
+    // quietly refused that back cannot leave the flag standing and swallow it.
+    this.spending = false;
+    history.pushState({ sv: 'back' }, '');
+    this.guarded = true;
+  }
+
+  private guardWanted(): boolean {
+    return !this.onMenu || overlaysOpen() > 0;
+  }
+
+  /**
+   * Match the entry we hold to the screen, once the dust has settled.
+   *
+   * Deferred by a microtask because closing a panel is so often the first half
+   * of going somewhere: the picker closes and then opens a puzzle, the win
+   * panel closes and then deals the next one. Judged at the moment of the close
+   * every one of those would spend the entry and immediately push another —
+   * and since back() only takes effect on the next turn of the loop, the pop
+   * would land on the entry we had just pushed and quietly take it away.
+   */
+  private syncQueued = false;
+  private syncGuard(): void {
+    if (this.syncQueued) return;
+    this.syncQueued = true;
+    queueMicrotask(() => {
+      this.syncQueued = false;
+      if (this.guardWanted()) this.armBack();
+      else if (this.guarded) {
+        this.guarded = false;
+        this.spending = true;
+        history.back();
+      }
+    });
+  }
+
+  applyTheme(): void {
+    document.documentElement.dataset.theme = this.settings.theme;
+    setThemeColour(THEME_COLOUR[this.settings.theme]);
+  }
+
+  /** Only worth holding while a puzzle is open and running. */
+  applyWakeLock(): void {
+    keepScreenAwake(this.settings.keepAwake && this.play !== null && !this.play.isPaused);
+  }
+
+  /** Landscape reads this off the root, so no screen has to be rebuilt. */
+  applyKeypadSide(): void {
+    document.documentElement.dataset.keypad = this.settings.keypadSide;
+  }
+
+  /** Storage was replaced underneath us (an import); start again from it. */
+  reload(): void {
+    this.settings = loadSettings();
+    this.history = loadHistory();
+    this.applyTheme();
+    this.applyKeypadSide();
+    this.goMenu();
+  }
+
+  refreshBoard(): void {
+    this.play?.render();
+  }
+
+  private mount(node: HTMLElement): void {
+    this.play?.destroy();
+    this.play = null;
+    clear(this.root);
+    this.root.append(node);
+  }
+
+  /*
+   * The menu is mounted here and now, whoever asked for it, and the entry is
+   * settled afterwards. Waiting for a popstate to do the mounting made the
+   * button only as reliable as the back() underneath it — and a browser that
+   * declines to go back, as an installed PWA sitting on its first entry does,
+   * leaves the button looking dead with nothing to show for the press.
+   */
+  goMenu(): void {
+    this.onMenu = true;
+    this.mount(buildMenu(this));
+    this.syncGuard();
+  }
+
+  goStats(level: Level): void {
+    this.onMenu = false;
+    this.armBack();
+    this.mount(buildStats(this, level));
+  }
+
+  openHelp(): void {
+    openHelp();
+  }
+
+  openSettings(): void {
+    openSettings(this);
+  }
+
+  playRandom(variants: Variants, level: Level): void {
+    const pool = unplayedNumbers(this.history, variants, level, this.poolSize);
+    if (pool.length === 0) {
+      toast('Every puzzle in this pool has been played — release some in Stats');
+      return;
+    }
+    const number = pool[Math.floor(Math.random() * pool.length)];
+    this.playPuzzle({ variants, level, number });
+  }
+
+  playPuzzle(id: PuzzleId): void {
+    // Every puzzle keeps its own save, so opening one you have played before
+    // carries on from where you left it. Restart is there for starting over.
+    const saved = loadSaveFor(id);
+    if (saved) {
+      this.resume(saved);
+      return;
+    }
+
+    const close = openOverlay(
+      () =>
+        el(
+          'div',
+          { class: 'panel won' },
+          el('div', { class: 'spinner' }),
+          el('h2', {}, `Loading ${variantLabel(id.variants)} ${formatPuzzleId(id)}`),
+          el('p', { class: 'summary' }, 'Generating and proving it has one solution.'),
+        ),
+      { dismissable: false },
+    );
+
+    void getPuzzle(id)
+      .then((puzzle) => {
+        close();
+        this.startGame(new Game(id, puzzle));
+        const pool = unplayedNumbers(this.history, id.variants, id.level, this.poolSize).filter(
+          (n) => n !== id.number,
+        );
+        if (pool.length > 0) {
+          prefetch({ variants: id.variants, level: id.level, number: pool[0] });
+        }
+      })
+      .catch((err: unknown) => {
+        close();
+        toast(err instanceof Error ? err.message : 'Could not load that puzzle');
+      });
+  }
+
+  private resume(saved: SavedGame): void {
+    const game = new Game(saved.id, saved.puzzle, {
+      values: saved.values,
+      pencils: saved.pencils,
+    });
+    game.elapsedMs = saved.elapsedMs;
+    game.hints = saved.hints;
+    game.checks = saved.checks;
+    game.importHistory({ past: saved.past, future: saved.future });
+    this.startGame(game);
+  }
+
+  private startGame(game: Game): void {
+    this.onMenu = false;
+    this.armBack();
+    this.play?.destroy();
+    clear(this.root);
+    const screen = new PlayScreen(this, game);
+    this.play = screen;
+    this.root.append(screen.root);
+    openFirstGameTutorial();
+  }
+}
+
+const host = document.querySelector<HTMLElement>('#app');
+if (host) new App(host);
+
+registerServiceWorker(() => {
+  if (document.querySelector('.update-notice')) return;
+  const reload = el('button', { class: 'btn primary' }, 'Reload');
+  reload.addEventListener('click', () => location.reload());
+  document.body.append(
+    el(
+      'div',
+      { class: 'update-notice', role: 'status' },
+      el('span', {}, 'A new version is ready.'),
+      reload,
+    ),
+  );
+});
