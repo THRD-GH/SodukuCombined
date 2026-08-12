@@ -824,6 +824,17 @@ body {
 }
 
 /* The classic style's NOTES switch, lit while taps write pencil marks. */
+.notes-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.notes-key svg {
+  flex: 0 0 auto;
+}
+
 .notes-key.on {
   background: var(--accent-dim);
   border-color: var(--accent);

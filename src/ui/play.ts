@@ -16,7 +16,7 @@ import { Board } from './board.ts';
 import { clear, el, formatTime } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
 import { cellName, describeTechnique, explainStep } from './explain.ts';
-import { clockIcon, undoArrow } from './icons.ts';
+import { clockIcon, pencilIcon, undoArrow } from './icons.ts';
 import type { Step } from '../core/techniques.ts';
 import { bindTap } from './pointer.ts';
 import type { AppContext } from './app-context.ts';
@@ -46,7 +46,8 @@ export class PlayScreen {
   private notesBtn = el(
     'button',
     { class: 'key clear notes-key', 'aria-label': 'Notes mode', title: 'Notes: taps write pencil marks' },
-    'NOTES',
+    pencilIcon(15),
+    el('span', {}, 'NOTES'),
   );
 
   private ticker: number | undefined;
@@ -230,6 +231,7 @@ export class PlayScreen {
       confirmDialog('Clear every entry and start this puzzle again?', () => {
         this.game.restart();
         this.game.elapsedMs = 0;
+        this.board.spotlight([]);
         this.render();
       }, 'Restart'),
     );
@@ -419,6 +421,7 @@ export class PlayScreen {
 
   private doRewind(): void {
     const steps = this.game.rewindToLastCorrect();
+    this.board.spotlight([]);
     this.recentTaps.length = 0;
     this.render();
     this.scheduleSave();
@@ -554,6 +557,7 @@ export class PlayScreen {
       toast('Nothing to undo');
       return;
     }
+    this.board.spotlight([]);
     this.recentTaps.length = 0;
     this.render();
     this.scheduleSave();
@@ -564,6 +568,7 @@ export class PlayScreen {
       toast('Nothing to redo');
       return;
     }
+    this.board.spotlight([]);
     this.recentTaps.length = 0;
     this.render();
     this.scheduleSave();
@@ -573,6 +578,9 @@ export class PlayScreen {
   // --------------------------------------------------------------- lifecycle
 
   private afterMove(): void {
+    // A hint's spotlight describes a position; any change to the board
+    // outdates it. Undo and redo below do the same.
+    this.board.spotlight([]);
     // Flagged as you go, for a relaxed game — Check stays the deliberate,
     // counted version for anyone who would rather find their own mistakes.
     if (this.ctx.settings.instantCheck) this.game.flagMistakes();

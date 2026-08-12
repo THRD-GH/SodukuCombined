@@ -42,6 +42,32 @@ export function transparencyIcon(size = 15): SVGSVGElement {
   return svg;
 }
 
+/** A pencil, for the classic style's NOTES switch. */
+export function pencilIcon(size = 15): SVGSVGElement {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('aria-hidden', 'true');
+
+  const group = document.createElementNS(SVG_NS, 'g');
+  group.setAttribute('fill', 'none');
+  group.setAttribute('stroke', 'currentColor');
+  group.setAttribute('stroke-width', '2');
+  group.setAttribute('stroke-linecap', 'round');
+  group.setAttribute('stroke-linejoin', 'round');
+
+  // Body at a slant, tip towards the lower left, a nib line across it.
+  const body = document.createElementNS(SVG_NS, 'path');
+  body.setAttribute('d', 'M4 20 L5.5 14.5 L16 4 L20 8 L9.5 18.5 Z');
+  const nib = document.createElementNS(SVG_NS, 'path');
+  nib.setAttribute('d', 'M13.5 6.5 L17.5 10.5');
+
+  group.append(body, nib);
+  svg.append(group);
+  return svg;
+}
+
 /** A clock face, shown in place of the time when the clock is hidden. */
 export function clockIcon(size = 20): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg');

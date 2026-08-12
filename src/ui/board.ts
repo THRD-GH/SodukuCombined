@@ -45,6 +45,9 @@ export class Board {
 
   /** Draw attention to the cells a hint concerns. Pass [] to clear. */
   spotlight(cells: number[]): void {
+    // Clearing an already-clear spotlight is the common case — every move
+    // does it defensively — and should not cost a repaint.
+    if (cells.length === 0 && this.spotlit.size === 0) return;
     this.spotlit = new Set(cells);
     this.render();
   }
