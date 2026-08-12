@@ -54,3 +54,42 @@ export function stars(count: number, size = 20): HTMLSpanElement {
   for (let i = 0; i < count; i++) wrap.append(star(size, hue));
   return wrap;
 }
+
+/** Faceted diamond, cut like the star: four triangles, alternately lit. */
+function diamond(size: number, hue: number): SVGSVGElement {
+  const svg = document.createElementNS(SVG, 'svg');
+  svg.setAttribute('viewBox', '0 0 20 20');
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+
+  const cx = 10;
+  const cy = 10;
+  const tips: [number, number][] = [
+    [10, 1],
+    [19, 10],
+    [10, 19],
+    [1, 10],
+  ];
+  for (let k = 0; k < 4; k++) {
+    const a = tips[k];
+    const b = tips[(k + 1) % 4];
+    const tri = document.createElementNS(SVG, 'polygon');
+    tri.setAttribute('points', `${cx},${cy} ${a[0]},${a[1]} ${b[0]},${b[1]}`);
+    tri.setAttribute('fill', k % 2 === 0 ? `hsl(${hue} 72% 58%)` : `hsl(${hue} 66% 33%)`);
+    svg.append(tri);
+  }
+  return svg;
+}
+
+/**
+ * The rules-complexity scale wears diamonds where the level ladder wears
+ * stars — same colours, different cut, so the two axes cannot be mistaken
+ * for each other anywhere they appear.
+ */
+export function diamonds(count: number, size = 20): HTMLSpanElement {
+  const wrap = document.createElement('span');
+  wrap.className = 'stars';
+  const hue = hueFor(count);
+  for (let i = 0; i < count; i++) wrap.append(diamond(size, hue));
+  return wrap;
+}
