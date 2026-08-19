@@ -9,16 +9,36 @@ import type { Candidates } from './techniques.ts';
 import type { Level, Puzzle, Variants } from './types.ts';
 import { variantCode } from './types.ts';
 
-/** Six levels, one to six stars. */
+/** Six ranks, White belt through to 1st Dan — the DanDoku ladder. */
 export const LEVELS: Level[] = [1, 2, 3, 4, 5, 6];
 
 export const LEVEL_NAMES: Record<Level, string> = {
-  1: 'Gentle',
-  2: 'Easy',
-  3: 'Steady',
-  4: 'Tricky',
-  5: 'Tough',
-  6: 'Brutal',
+  1: 'White belt',
+  2: 'Yellow belt',
+  3: 'Green belt',
+  4: 'Blue belt',
+  5: 'Brown belt',
+  6: 'Black belt',
+};
+
+/** The Kyū/Dan grade each belt carries, as dandoku.com writes them. */
+export const LEVEL_RANKS: Record<Level, string> = {
+  1: '5th Kyū',
+  2: '4th Kyū',
+  3: '3rd Kyū',
+  4: '2nd Kyū',
+  5: '1st Kyū',
+  6: '1st Dan',
+};
+
+/** The one-word read of each rank, also straight off the site. */
+export const LEVEL_WORDS: Record<Level, string> = {
+  1: 'Foundations',
+  2: 'Developing',
+  3: 'Confident',
+  4: 'Advanced',
+  5: 'Expert',
+  6: 'Dan challenge',
 };
 
 /**
@@ -35,14 +55,14 @@ export function difficultyScore(c: Classification): number {
 /**
  * How solvable the puzzle must stay while clues are removed: every level is
  * finishable by named techniques alone, capped at the level's tier of the
- * stack. There is no guessing tier — Brutal means jellyfish, W-wings and
+ * stack. There is no guessing tier — Black belt means jellyfish, W-wings and
  * turbot fish, not trial and error.
  */
 const LEVEL_TECHNIQUE_CAP: Record<Level, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6 };
 
 /**
  * How far the dig goes, per level. Easy levels stop while the board is still
- * comfortably populated — a Gentle grid with 22 givens rates as easy but
+ * comfortably populated — a White-belt grid with 22 givens rates as easy but
  * looks like a cliff face — while the top levels dig to the practical floor,
  * which is where the deep techniques start being forced.
  */
@@ -299,11 +319,11 @@ export function digClues(
    * start being forced.
    *
    * Reaching this line means the level's technique has not been forced yet
-   * (hardEnough returns the moment it is), so for every level above Gentle
+   * (hardEnough returns the moment it is), so for every level above White belt
    * the floor stops mattering here: depth is the only lever that adds
    * demand, and the constraint-rich combos routinely arrive at their scaled
    * floor still solving on singles. Dig until hardness or exhaustion. Only
-   * Gentle keeps its floor — it wants a populated board, and score 0 is
+   * White belt keeps its floor — it wants a populated board, and score 0 is
    * already what it asked for.
    */
   if (want > 0) {

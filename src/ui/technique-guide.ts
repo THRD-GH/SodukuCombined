@@ -1,9 +1,9 @@
-import { LEVEL_NAMES } from '../core/generator.ts';
+import { LEVEL_NAMES, LEVEL_RANKS } from '../core/generator.ts';
 import { TECHNIQUES } from '../core/techniques.ts';
 import type { Level } from '../core/types.ts';
 import { clear, el } from './dom.ts';
 import { openOverlay } from './overlay.ts';
-import { stars } from './stars.ts';
+import { belt } from './stars.ts';
 import { describeTechnique, explainTechniqueFully } from './explain.ts';
 import { techniqueExample } from './technique-examples.ts';
 import { LEVEL_LEADS } from './level-info.ts';
@@ -39,8 +39,8 @@ export function openTechniqueGuide(): void {
 
       clear(header);
       header.append(
-        stars(level, 12),
-        el('span', { class: 'guide-level' }, `Level ${level} · ${LEVEL_NAMES[level]}`),
+        belt(level, 15),
+        el('span', { class: 'guide-level' }, `${LEVEL_NAMES[level]} · ${LEVEL_RANKS[level]}`),
       );
 
       clear(card);

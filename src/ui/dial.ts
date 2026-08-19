@@ -1,4 +1,5 @@
 import type { Level } from '../core/types.ts';
+import { BELT_COLOURS } from './stars.ts';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -8,9 +9,6 @@ const SWEEP = 240;
 const STEP = SWEEP / 5;
 
 const angleFor = (level: Level): number => START + (level - 1) * STEP;
-
-/** Same green-to-red ramp the stars use, so the dial face reads as a scale. */
-const hueFor = (level: number): number => Math.round(132 - ((level - 1) / 5) * 132);
 
 const point = (r: number, deg: number): [number, number] => {
   const a = (deg * Math.PI) / 180;
@@ -59,19 +57,28 @@ export function buildLevelDial(initial: Level, onChange: (level: Level) => void)
   make('stop', { offset: '0%', style: 'stop-color: var(--dial-hi)' }, grad);
   make('stop', { offset: '100%', style: 'stop-color: var(--dial-lo)' }, grad);
 
-  // Stop marks and numbers, each wearing its level's colour.
+  // Stop marks in the belt ladder's own colours. Each tick sits on a wider
+  // casing stroke, or the white and black belts would vanish into whichever
+  // theme matches them.
   const numbers: SVGElement[] = [];
   for (let l = 1; l <= 6; l++) {
     const deg = angleFor(l as Level);
     const [x1, y1] = point(31.5, deg);
     const [x2, y2] = point(36, deg);
     make('line', {
+      class: 'dial-tick-casing',
+      x1: String(x1),
+      y1: String(y1),
+      x2: String(x2),
+      y2: String(y2),
+    });
+    make('line', {
       class: 'dial-tick',
       x1: String(x1),
       y1: String(y1),
       x2: String(x2),
       y2: String(y2),
-      stroke: `hsl(${hueFor(l)} 62% 45%)`,
+      stroke: BELT_COLOURS[l - 1],
     });
     // The numbers wear the theme's ink, not the ramp — the coloured ticks
     // carry the scale, the digits' job is to be readable.

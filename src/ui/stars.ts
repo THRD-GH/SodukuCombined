@@ -1,57 +1,72 @@
 const SVG = 'http://www.w3.org/2000/svg';
 
 /**
- * Difficulty as colour: green at one star, sliding through yellow and orange
- * to red at six. Hue alone carries the scale, so the two facets keep the same
- * relationship at every level and the stars still read as one set.
+ * Rules-complexity as colour: green at one pip, sliding through yellow and
+ * orange to red. This ramp belongs to the combo pips alone — difficulty
+ * ranks wear belts, and the two scales must not look related.
  */
 function hueFor(count: number): number {
   const t = (Math.min(Math.max(count, 1), 6) - 1) / 5;
   return Math.round(132 - t * 132);
 }
 
-/** Faceted five-point star, drawn rather than shipped as an image. */
-function star(size: number, hue: number): SVGSVGElement {
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('viewBox', '0 0 20 20');
-  svg.setAttribute('width', String(size));
-  svg.setAttribute('height', String(size));
+/**
+ * The DanDoku belt ladder's colours, one per level, exactly as the site
+ * paints them: white, yellow, green, blue, brown, and the ink-dark black
+ * that carries the DAN tag.
+ */
+export const BELT_COLOURS = [
+  '#fffdfa',
+  '#efc44f',
+  '#6c9a72',
+  '#3979a8',
+  '#8a563b',
+  '#17273d',
+] as const;
 
-  const cx = 10;
-  const cy = 10.2;
-  const outer = 9.4;
-  const inner = 3.9;
-  const point = (r: number, deg: number): [number, number] => {
-    const a = ((deg - 90) * Math.PI) / 180;
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+/**
+ * One belt, drawn as the thing itself: the band, a square knot, two tails.
+ * Rank is said by colour, not by count — a blue belt is one blue belt — so
+ * this replaces the star rows wherever difficulty is shown. The border
+ * comes from a theme variable so White reads on cream and Black on night.
+ */
+export function belt(level: number, height = 14): HTMLSpanElement {
+  const l = Math.min(Math.max(Math.round(level), 1), 6);
+  const fill = BELT_COLOURS[l - 1];
+
+  const svg = document.createElementNS(SVG, 'svg');
+  svg.setAttribute('viewBox', '0 0 44 20');
+  svg.setAttribute('width', String(Math.round((height * 44) / 20)));
+  svg.setAttribute('height', String(height));
+  svg.setAttribute('aria-hidden', 'true');
+
+  const shape = (d: string): SVGPathElement => {
+    const path = document.createElementNS(SVG, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', fill);
+    path.setAttribute('class', 'belt-stroke');
+    svg.append(path);
+    return path;
   };
 
-  // Two triangles per arm, alternately lit, which reads as a 3D star.
-  for (let k = 0; k < 5; k++) {
-    const tip = point(outer, k * 72);
-    const left = point(inner, k * 72 - 36);
-    const right = point(inner, k * 72 + 36);
-    for (const [a, b, light] of [
-      [left, tip, true],
-      [tip, right, false],
-    ] as const) {
-      const tri = document.createElementNS(SVG, 'polygon');
-      tri.setAttribute('points', `${cx},${cy} ${a[0]},${a[1]} ${b[0]},${b[1]}`);
-      tri.setAttribute(
-        'fill',
-        light ? `hsl(${hue} 72% 58%)` : `hsl(${hue} 66% 33%)`,
-      );
-      svg.append(tri);
-    }
-  }
-  return svg;
-}
+  // Band, then the two tails falling from the knot, then the knot on top.
+  shape('M1.5 5.5 H42.5 V12.5 H1.5 Z');
+  shape('M20 11 L14.5 18.5 L18.5 18.5 L23 11 Z');
+  shape('M24 11 L27.5 18.5 L31.5 18.5 L27 11 Z');
+  shape('M18.5 4.5 L25.5 4.5 L28 13.2 L21 13.2 Z');
 
-export function stars(count: number, size = 20): HTMLSpanElement {
+  if (l === 6) {
+    const tag = document.createElementNS(SVG, 'text');
+    tag.setAttribute('x', '35');
+    tag.setAttribute('y', '10.6');
+    tag.setAttribute('class', 'belt-dan');
+    tag.textContent = 'DAN';
+    svg.append(tag);
+  }
+
   const wrap = document.createElement('span');
-  wrap.className = 'stars';
-  const hue = hueFor(count);
-  for (let i = 0; i < count; i++) wrap.append(star(size, hue));
+  wrap.className = 'belt-glyph';
+  wrap.append(svg);
   return wrap;
 }
 

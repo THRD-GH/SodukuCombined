@@ -1,4 +1,4 @@
-import { LEVEL_NAMES } from '../core/generator.ts';
+import { LEVEL_NAMES, LEVEL_RANKS, LEVEL_WORDS } from '../core/generator.ts';
 import type { Level, Variants } from '../core/types.ts';
 import { NO_VARIANTS, VARIANT_NAMES, formatPuzzleId, variantLabel } from '../core/types.ts';
 import { boardPreview } from './preview.ts';
@@ -7,7 +7,7 @@ import { allSaves, levelStats, saveSettings, unplayedNumbers } from '../game/sto
 import { buildStamp, clear, el, formatTime } from './dom.ts';
 import { openOverlay, toast } from './overlay.ts';
 import { bindTap } from './pointer.ts';
-import { pips, stars } from './stars.ts';
+import { belt, pips } from './stars.ts';
 import type { AppContext } from './app-context.ts';
 import { openActionMenu } from './action-menu.ts';
 import { LEVEL_LEADS, openLevelInfo } from './level-info.ts';
@@ -160,6 +160,7 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     { class: 'source new play-big' },
     el('span', { class: 'source-name' }, 'Play #'),
   );
+  const rankLine = el('p', { class: 'rank-line' });
   const levelLead = el('p', { class: 'level-lead' });
   const poolLeft = el('p', { class: 'pool-left' });
   pickBtn.addEventListener('click', () =>
@@ -176,9 +177,10 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     clear(dialLabel);
     dialLabel.append(
       el('span', { class: 'name' }, LEVEL_NAMES[level]),
-      stars(level, 11),
+      belt(level, 13),
       el('span', { class: 'level-info-badge', 'aria-hidden': 'true' }, '?'),
     );
+    rankLine.textContent = `${LEVEL_RANKS[level]} · ${LEVEL_WORDS[level]}`;
     levelLead.textContent = LEVEL_LEADS[level];
     const left = unplayedNumbers(ctx.history, variants, level, ctx.poolSize).length;
     const stat = levelStats(ctx.history, variants, level, ctx.poolSize);
@@ -198,7 +200,7 @@ export function buildMenu(ctx: AppContext): HTMLElement {
       'div',
       { class: 'level-row' },
       el('div', { class: 'dial-col' }, el('p', { class: 'col-title' }, 'Difficulty'), dial.root),
-      el('div', { class: 'level-desc' }, dialLabel, levelLead, poolLeft),
+      el('div', { class: 'level-desc' }, dialLabel, rankLine, levelLead, poolLeft),
       el('div', { class: 'play-col' }, playBtn, pickBtn),
     ),
   );
@@ -335,7 +337,7 @@ export function openPicker(ctx: AppContext, variants: Variants, level: Level): v
     return el(
       'div',
       { class: 'panel' },
-      el('h2', {}, `${variantLabel(variants)} · Level ${level} — ${LEVEL_NAMES[level]}`),
+      el('h2', {}, `${variantLabel(variants)} · ${LEVEL_NAMES[level]} — ${LEVEL_RANKS[level]}`),
       el('div', { class: 'picker-jump' }, el('label', {}, 'Go to'), jump, go),
       tabs,
       summary,

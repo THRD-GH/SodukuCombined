@@ -383,10 +383,10 @@ export function linkedPuzzle(): PuzzleId | null {
   return asked === null ? null : parsePuzzleId(asked.trim().toUpperCase());
 }
 
-/** Drop ?p= once it has been acted on, so a refresh does not reopen it. */
+/** Drop ?p= and ?v= once acted on, so a refresh does not reapply them. */
 export function clearPuzzleLink(): void {
   const url = new URL(window.location.href);
-  if (!url.searchParams.has('p')) return;
+  if (!url.searchParams.has('p') && !url.searchParams.has('v')) return;
   url.search = '';
   window.history.replaceState(null, '', url.toString());
 }

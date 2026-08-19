@@ -1,9 +1,9 @@
-import { LEVEL_NAMES } from '../core/generator.ts';
+import { LEVEL_NAMES, LEVEL_RANKS, LEVEL_WORDS } from '../core/generator.ts';
 import { TECHNIQUES } from '../core/techniques.ts';
 import type { Level } from '../core/types.ts';
 import { el } from './dom.ts';
 import { openOverlay } from './overlay.ts';
-import { stars } from './stars.ts';
+import { belt } from './stars.ts';
 import { describeTechnique } from './explain.ts';
 
 export const LEVEL_LEADS: Record<Level, string> = {
@@ -28,12 +28,12 @@ export function openLevelInfo(level: Level): void {
     return el(
       'div',
       { class: 'panel level-info-panel' },
-      el('div', { class: 'level-info-stars' }, stars(level, 15)),
-      el('h2', {}, `Level ${level} · ${LEVEL_NAMES[level]}`),
-      el('p', { class: 'level-info-lead' }, LEVEL_LEADS[level]),
+      el('div', { class: 'level-info-stars' }, belt(level, 18)),
+      el('h2', {}, `${LEVEL_NAMES[level]} · ${LEVEL_RANKS[level]}`),
+      el('p', { class: 'level-info-lead' }, `${LEVEL_WORDS[level]}. ${LEVEL_LEADS[level]}`),
       list,
       level > 1
-        ? el('p', { class: 'summary' }, 'Each level can also require every technique introduced below it. The rating reflects the hardest step needed, and every puzzle is solvable by these techniques alone — no guessing.')
+        ? el('p', { class: 'summary' }, 'Each belt can also require every technique introduced below it. The rating reflects the hardest step needed, and every puzzle is solvable by these techniques alone — no guessing.')
         : null,
       el('div', { class: 'panel-footer' }, done),
     );

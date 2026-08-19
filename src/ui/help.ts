@@ -64,7 +64,7 @@ const SECTIONS: [string, string[]][] = [
   [
     'Levels and puzzle numbers',
     [
-      'Six levels, one to six stars. Every variant mix has its own pool of numbered puzzles at each level.',
+      'Six ranks, White belt through to 1st Dan — the same ladder as every DanDoku game. Every variant mix has its own pool of numbered puzzles at each rank.',
       'Tap Play for a random unplayed puzzle, hold (or tap #) to choose a number.',
       'Puzzle S3-10 is plain sudoku, X3-10 has the diagonals on, XJ3-10 adds jigsaw, and so on. The same id always builds the same puzzle on every device.',
       'Each pool keeps separate history. Only unplayed puzzles are offered — release used ones from Stats by long-clicking a pink row.',

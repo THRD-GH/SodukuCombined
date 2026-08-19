@@ -1,4 +1,5 @@
 import { colOf, rowOf } from '../core/grid.ts';
+import { LEVEL_NAMES } from '../core/generator.ts';
 import type { Level } from '../core/types.ts';
 import { formatPuzzleId, variantLabel } from '../core/types.ts';
 import { Game } from '../game/state.ts';
@@ -634,7 +635,8 @@ export class PlayScreen {
         el(
           'p',
           { class: 'summary' },
-          `${this.game.hints} hint${this.game.hints === 1 ? '' : 's'}, ` +
+          `${LEVEL_NAMES[this.game.puzzle.difficulty as Level]} · ` +
+            `${this.game.hints} hint${this.game.hints === 1 ? '' : 's'}, ` +
             `${this.game.checks} check${this.game.checks === 1 ? '' : 's'}`,
         ),
         this.techniqueReport(),

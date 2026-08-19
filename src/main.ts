@@ -1,7 +1,7 @@
 import './style.css';
 import './styles/responsive.css';
 import type { Level, PuzzleId, Variants } from './core/types.ts';
-import { formatPuzzleId, variantLabel } from './core/types.ts';
+import { formatPuzzleId, parseVariantCode, variantLabel } from './core/types.ts';
 import { getPuzzle, prefetch } from './game/generate.ts';
 import { registerServiceWorker, setThemeColour } from './game/pwa.ts';
 import { keepScreenAwake } from './game/wakelock.ts';
@@ -13,6 +13,7 @@ import {
   loadHistory,
   loadSaveFor,
   loadSettings,
+  saveSettings,
   unplayedNumbers,
 } from './game/storage.ts';
 import type { History, SavedGame, Settings, Theme } from './game/storage.ts';
@@ -58,6 +59,20 @@ class App implements AppContext {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.play?.pause();
     });
+
+    /*
+     * ?v=S / ?v=XJ preselects a variant mix — it is how the dandoku.com
+     * cards can offer "Classic Sudoku" and "Sudoku Variants" as different
+     * doors into the same app.
+     */
+    const askedMix = new URLSearchParams(window.location.search).get('v');
+    if (askedMix !== null) {
+      const mix = parseVariantCode(askedMix.trim().toUpperCase());
+      if (mix !== null) {
+        this.settings.variants = mix;
+        saveSettings(this.settings);
+      }
+    }
 
     // A shared link names a puzzle outright; honour it instead of the menu.
     const linked = linkedPuzzle();
