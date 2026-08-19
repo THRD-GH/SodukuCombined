@@ -32,6 +32,12 @@ export interface Settings {
   inputStyle: InputStyle;
   /** Which palette to draw. 'contrast' is the accessible high-contrast one. */
   theme: Theme;
+  /**
+   * True once the theme was picked by hand in Settings. Without it a stored
+   * theme is just whatever the default happened to be when settings were
+   * first saved, and does not outrank a changed default.
+   */
+  themeChosen: boolean;
   /** Which side the keypad sits on, with the other buttons across from it. */
   keypadSide: KeypadSide;
   /** Tint every cell that shares a unit with the selected one. */
@@ -58,6 +64,7 @@ export const DEFAULT_SETTINGS: Settings = {
   allowSingleCandidates: false,
   inputStyle: 'gesture',
   theme: 'day',
+  themeChosen: false,
   keypadSide: 'left',
   highlightPeers: true,
   highlightSameDigit: true,
@@ -130,6 +137,9 @@ export const loadSettings = (): Settings => {
     variants: { ...NO_VARIANTS, ...(stored.variants ?? {}) },
     level,
     inputStyle: stored.inputStyle === 'classic' ? 'classic' : 'gesture',
+    // A theme nobody picked is not a preference — early storage carries the
+    // old night default baked in, and the default is day now.
+    theme: stored.themeChosen ? (stored.theme ?? DEFAULT_SETTINGS.theme) : DEFAULT_SETTINGS.theme,
   };
 };
 export const saveSettings = (s: Settings): void => write(KEY.settings, s);

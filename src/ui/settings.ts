@@ -132,6 +132,8 @@ export function openSettings(ctx: AppContext): void {
           () => ctx.settings.theme,
           (theme) => {
             ctx.settings.theme = theme;
+            // A hand-picked theme outranks any future change of default.
+            ctx.settings.themeChosen = true;
             saveSettings(ctx.settings);
             ctx.applyTheme();
           },
