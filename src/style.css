@@ -1254,18 +1254,27 @@ body.has-bg .screen.play {
   text-transform: uppercase;
 }
 
-/* The middle column: name and stars, the lead line, and the pool count. */
+/* The middle column: name and belt, the lead line, and the pool count.
+   Anchored to the top of the row, not centred — the lead runs to one line
+   for some belts and two for others, and a centred block would ride up
+   and down as the dial turns. */
 .level-desc {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  align-self: start;
+  padding-top: 6px;
   gap: 4px;
   min-width: 0;
 }
 
-/* "2nd Kyū · Advanced" under the belt's name. */
+/* "2nd Kyū · Advanced" under the belt's name — one line, always. */
 .rank-line {
   margin: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--accent);
   font-size: 11.5px;
   font-weight: 700;
@@ -1276,6 +1285,11 @@ body.has-bg .screen.play {
   margin: 0;
   font-size: 12px;
   line-height: 1.4;
+  /* Exactly two lines, whatever the belt says: the pool count and the
+     plays below never move as the dial turns. */
+  min-height: 2.8em;
+  max-height: 2.8em;
+  overflow: hidden;
   color: var(--text);
 }
 
@@ -1429,6 +1443,10 @@ body.has-bg .screen.play {
 .dial-label .stars {
   display: flex;
   gap: 1px;
+}
+
+.dial-label .name {
+  white-space: nowrap;
 }
 
 .level-info-badge {
