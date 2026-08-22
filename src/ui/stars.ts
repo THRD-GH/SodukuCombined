@@ -25,40 +25,53 @@ export const BELT_COLOURS = [
 ] as const;
 
 /**
- * One belt, drawn as the thing itself: the band, a square knot, two tails.
- * Rank is said by colour, not by count — a blue belt is one blue belt — so
- * this replaces the star rows wherever difficulty is shown. The border
- * comes from a theme variable so White reads on cream and Black on night.
+ * One belt, drawn as the thing itself in the site's flat ink style: the
+ * band with its stitch lines, a square knot with the fold of the wrap, two
+ * tails hanging from it. Rank is said by colour, not by count — a blue
+ * belt is one blue belt — so this replaces the star rows wherever
+ * difficulty is shown. Outlined in the theme's ink so White reads on
+ * paper and Black on night.
  */
 export function belt(level: number, height = 14): HTMLSpanElement {
   const l = Math.min(Math.max(Math.round(level), 1), 6);
   const fill = BELT_COLOURS[l - 1];
 
   const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('viewBox', '0 0 44 20');
-  svg.setAttribute('width', String(Math.round((height * 44) / 20)));
+  svg.setAttribute('viewBox', '0 0 48 22');
+  svg.setAttribute('width', String(Math.round((height * 48) / 22)));
   svg.setAttribute('height', String(height));
   svg.setAttribute('aria-hidden', 'true');
 
-  const shape = (d: string): SVGPathElement => {
+  const shape = (d: string, cls = 'belt-stroke'): SVGPathElement => {
     const path = document.createElementNS(SVG, 'path');
     path.setAttribute('d', d);
     path.setAttribute('fill', fill);
-    path.setAttribute('class', 'belt-stroke');
+    path.setAttribute('class', cls);
     svg.append(path);
     return path;
   };
+  const line = (d: string, cls: string): void => {
+    const path = document.createElementNS(SVG, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('class', cls);
+    svg.append(path);
+  };
 
-  // Band, then the two tails falling from the knot, then the knot on top.
-  shape('M1.5 5.5 H42.5 V12.5 H1.5 Z');
-  shape('M20 11 L14.5 18.5 L18.5 18.5 L23 11 Z');
-  shape('M24 11 L27.5 18.5 L31.5 18.5 L27 11 Z');
-  shape('M18.5 4.5 L25.5 4.5 L28 13.2 L21 13.2 Z');
+  // The band, with the two stitch lines every real belt carries.
+  shape('M1 5 H47 V13 H1 Z');
+  line('M3 7.3 H45 M3 10.7 H45', 'belt-stitch');
+  // Tails hang from the knot; the right one sits behind the left.
+  shape('M23 12.5 L29.5 21 L34.5 21 L27.5 12.5 Z');
+  shape('M20.5 12.5 L13.5 21 L18.5 21 L25 12.5 Z');
+  // The knot, and the fold where the band wraps over itself.
+  shape('M19.5 3.5 H28.5 V14.5 H19.5 Z');
+  line('M19.5 3.5 L28.5 14.5', 'belt-fold');
 
   if (l === 6) {
     const tag = document.createElementNS(SVG, 'text');
-    tag.setAttribute('x', '35');
-    tag.setAttribute('y', '10.6');
+    tag.setAttribute('x', '38.5');
+    tag.setAttribute('y', '10.9');
     tag.setAttribute('class', 'belt-dan');
     tag.textContent = 'DAN';
     svg.append(tag);
