@@ -684,6 +684,37 @@ body.has-bg .screen.play {
   width: calc(100% - 20px);
 }
 
+/*
+ * On a phone the column is full-bleed and the mat would hide the whole
+ * picture bar a sliver at each side. There the mat goes, and the controls
+ * stand on the image as tiles — every one of them has an opaque face, so
+ * nothing readable touches the picture; it shows in the gaps and below.
+ * The gaps open up a touch to let it.
+ */
+@media (max-width: 560px) {
+  body.has-bg .screen.play {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    margin: 0 auto;
+    width: 100%;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  body.has-bg .screen.play .titlebar,
+  body.has-bg .screen.play .board {
+    box-shadow: 6px 7px 0 var(--shadow);
+  }
+
+  body.has-bg .screen.play .key,
+  body.has-bg .screen.play .btn,
+  body.has-bg .screen.play .pause-btn,
+  body.has-bg .screen.play .timer {
+    box-shadow: 3px 3px 0 var(--shadow);
+  }
+}
+
 .bg-dim {
   display: flex;
   align-items: center;
