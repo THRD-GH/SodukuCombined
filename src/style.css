@@ -647,6 +647,58 @@ body {
   font-weight: 800;
 }
 
+/* ---------- board background ---------- */
+
+/* Behind the play screen only. The board and controls are opaque, so the
+   image shows in the margins and the page ground; nothing readable sits
+   on it. Fixed attachment is deliberately avoided — phones repaint it on
+   every scroll. */
+body.has-bg {
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.bg-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.bg-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 2px;
+  background: var(--bg) center / cover no-repeat;
+  cursor: pointer;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.bg-thumb span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2px 4px;
+  background: rgb(var(--panel-rgb) / 0.85);
+  text-align: center;
+}
+
+.bg-thumb.on {
+  border-color: var(--coral);
+  box-shadow: 3px 3px 0 var(--coral);
+}
+
 /* ---------- keypad and controls ---------- */
 
 .controls {

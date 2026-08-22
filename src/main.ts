@@ -5,6 +5,7 @@ import { formatPuzzleId, parseVariantCode, variantLabel } from './core/types.ts'
 import { getPuzzle, prefetch } from './game/generate.ts';
 import { registerServiceWorker, setThemeColour } from './game/pwa.ts';
 import { keepScreenAwake } from './game/wakelock.ts';
+import { applyBackground, clearBackground } from './game/backgrounds.ts';
 import { Game } from './game/state.ts';
 import {
   POOL_SIZE,
@@ -181,6 +182,12 @@ class App implements AppContext {
     keepScreenAwake(this.settings.keepAwake && this.play !== null && !this.play.isPaused);
   }
 
+  /** Only the play screen carries the background; the menu stays paper. */
+  applyBackground(): void {
+    if (this.play) applyBackground(this.settings);
+    else clearBackground();
+  }
+
   /** Landscape reads this off the root, so no screen has to be rebuilt. */
   applyKeypadSide(): void {
     document.documentElement.dataset.keypad = this.settings.keypadSide;
@@ -202,6 +209,7 @@ class App implements AppContext {
   private mount(node: HTMLElement): void {
     this.play?.destroy();
     this.play = null;
+    clearBackground();
     clear(this.root);
     this.root.append(node);
   }
@@ -301,6 +309,7 @@ class App implements AppContext {
     const screen = new PlayScreen(this, game);
     this.play = screen;
     this.root.append(screen.root);
+    applyBackground(this.settings);
     openFirstGameTutorial();
   }
 }

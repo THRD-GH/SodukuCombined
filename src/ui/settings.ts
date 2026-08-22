@@ -1,4 +1,10 @@
 import { exportBackup, importBackup, saveSettings } from '../game/storage.ts';
+import {
+  BACKGROUND_PRESETS,
+  clearCustomBackground,
+  loadCustomBackground,
+  storeCustomBackground,
+} from '../game/backgrounds.ts';
 import type { InputStyle, KeypadSide, Settings, Theme } from '../game/storage.ts';
 import { clear, el } from './dom.ts';
 import { confirmDialog, openOverlay, toast } from './overlay.ts';
@@ -118,6 +124,78 @@ const stacked = (title: string, detail: string | null, control: HTMLElement): HT
     control,
   );
 
+/**
+ * Thumbnails for the backgrounds: none, the drawn presets, and the player's
+ * own photo — which reads "Upload" until there is one.
+ */
+function backgroundPicker(ctx: AppContext): HTMLElement {
+  const grid = el('div', { class: 'bg-grid', role: 'group', 'aria-label': 'Board background' });
+  const file = el('input', { type: 'file', accept: 'image/*' });
+  file.hidden = true;
+
+  const choose = (id: string): void => {
+    ctx.settings.background = id;
+    saveSettings(ctx.settings);
+    ctx.applyBackground();
+    draw();
+  };
+
+  const thumb = (id: string, label: string, image: string | null): HTMLButtonElement => {
+    const on = ctx.settings.background === id;
+    const b = el(
+      'button',
+      { class: `bg-thumb ${on ? 'on' : ''}`.trim(), 'aria-pressed': String(on) },
+      el('span', {}, label),
+    );
+    if (image !== null) b.style.backgroundImage = `url("${image}")`;
+    return b;
+  };
+
+  const draw = (): void => {
+    clear(grid);
+    const none = thumb('none', 'None', null);
+    none.addEventListener('click', () => choose('none'));
+    grid.append(none);
+    for (const preset of BACKGROUND_PRESETS) {
+      const b = thumb(preset.id, preset.name, preset.image);
+      b.addEventListener('click', () => choose(preset.id));
+      grid.append(b);
+    }
+    const custom = loadCustomBackground();
+    const own = thumb('custom', custom === null ? 'Upload…' : 'Your photo', custom);
+    own.addEventListener('click', () => (custom === null ? file.click() : choose('custom')));
+    grid.append(own);
+  };
+
+  file.addEventListener('change', () => {
+    const chosen = file.files?.[0];
+    file.value = '';
+    if (!chosen) return;
+    void storeCustomBackground(chosen)
+      .then((ok) => {
+        if (!ok) {
+          toast('Could not keep that photo — storage is full or private');
+          return;
+        }
+        choose('custom');
+        toast('Your photo is the background');
+      })
+      .catch(() => toast('Could not read that image'));
+  });
+
+  const upload = el('button', { class: 'btn' }, 'Upload a photo');
+  upload.addEventListener('click', () => file.click());
+  const remove = el('button', { class: 'btn' }, 'Remove photo');
+  remove.addEventListener('click', () => {
+    clearCustomBackground();
+    if (ctx.settings.background === 'custom') choose('none');
+    else draw();
+  });
+
+  draw();
+  return el('div', {}, grid, el('div', { class: 'tabs', style: 'margin-top: 8px' }, upload, remove, file));
+}
+
 export function openSettings(ctx: AppContext): void {
   openOverlay((close) => {
     const list = el('div', {});
@@ -152,6 +230,11 @@ export function openSettings(ctx: AppContext): void {
             ctx.refreshBoard();
           },
         ),
+      ),
+      stacked(
+        'Board background',
+        'Behind the playing board. The patterns are drawn by the game; a photo of your own is shrunk to fit and stays on this device.',
+        backgroundPicker(ctx),
       ),
       stacked(
         'Keypad side',

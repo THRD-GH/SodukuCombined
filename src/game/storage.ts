@@ -58,6 +58,8 @@ export interface Settings {
   variants: Variants;
   /** The difficulty dial as last left on the menu. */
   level: Level;
+  /** What sits behind the play screen: 'none', a preset id, or 'custom'. */
+  background: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -77,6 +79,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showTimer: true,
   variants: { ...NO_VARIANTS },
   level: 1,
+  background: 'none',
 };
 
 export interface PuzzleRecord {
@@ -137,6 +140,7 @@ export const loadSettings = (): Settings => {
     variants: { ...NO_VARIANTS, ...(stored.variants ?? {}) },
     level,
     inputStyle: stored.inputStyle === 'classic' ? 'classic' : 'gesture',
+    background: typeof stored.background === 'string' ? stored.background : 'none',
     // A theme nobody picked is not a preference — early storage carries the
     // old night default baked in, and the default is day now.
     theme: stored.themeChosen ? (stored.theme ?? DEFAULT_SETTINGS.theme) : DEFAULT_SETTINGS.theme,

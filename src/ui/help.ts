@@ -45,6 +45,7 @@ const SECTIONS: [string, string[]][] = [
       'Undo and redo — the two arrow buttons. Undo winds back move by move, as far as the starting grid. Redo goes forward again, until you make a new move, which abandons it.',
       'Pause — stop the clock.',
       'The white box is the clock. Tap it to hide or show the time; it keeps running.',
+      'Settings offers a background behind the board: dojo-themed patterns, or a photo of your own, which stays on your device.',
     ],
   ],
   [
