@@ -21,11 +21,10 @@ export interface LevelDial {
 }
 
 /**
- * A rotary difficulty selector drawn like a radio's volume knob: a bezel, a
- * domed face with a ribbed grip, and a pointer mark, sitting inside a ring
- * of coloured stops. The whole grip rotates, ribs and all, so turning it
- * feels like turning a thing rather than moving a cursor. Tap a stop or
- * drag the knob round — both land on the nearest stop.
+ * A rotary difficulty selector in the site's print language: a flat paper
+ * disc ringed in ink on a hard offset shadow, a bold pointer, and a ring
+ * of belt-coloured stops edged in ink. Tap a stop or drag the knob round —
+ * both land on the nearest stop.
  */
 export function buildLevelDial(initial: Level, onChange: (level: Level) => void): LevelDial {
   const svg = document.createElementNS(SVG_NS, 'svg');
@@ -50,21 +49,13 @@ export function buildLevelDial(initial: Level, onChange: (level: Level) => void)
     return node;
   };
 
-  // The dome shading. Stop colours come from theme variables, so the knob
-  // is lamplit plastic at night and pale bakelite by day.
-  const defs = make('defs', {});
-  const grad = make('radialGradient', { id: 'dial-face-g', cx: '38%', cy: '30%', r: '80%' }, defs);
-  make('stop', { offset: '0%', style: 'stop-color: var(--dial-hi)' }, grad);
-  make('stop', { offset: '100%', style: 'stop-color: var(--dial-lo)' }, grad);
-
-  // Stop marks in the belt ladder's own colours. Each tick sits on a wider
-  // casing stroke, or the white and black belts would vanish into whichever
-  // theme matches them.
+  // Stop marks in the belt ladder's own colours, each edged in ink so the
+  // white and black belts read on whichever theme matches them.
   const numbers: SVGElement[] = [];
   for (let l = 1; l <= 6; l++) {
     const deg = angleFor(l as Level);
     const [x1, y1] = point(31.5, deg);
-    const [x2, y2] = point(36, deg);
+    const [x2, y2] = point(36.5, deg);
     make('line', {
       class: 'dial-tick-casing',
       x1: String(x1),
@@ -80,41 +71,21 @@ export function buildLevelDial(initial: Level, onChange: (level: Level) => void)
       y2: String(y2),
       stroke: BELT_COLOURS[l - 1],
     });
-    // The numbers wear the theme's ink, not the ramp — the coloured ticks
-    // carry the scale, the digits' job is to be readable.
     const [tx, ty] = point(44, deg);
     numbers.push(
       make('text', { class: 'dial-num', x: String(tx), y: String(ty + 3.5) }, svg, String(l)),
     );
   }
 
-  // Seated in a shallow well: shadow, bezel, then the domed face.
-  make('ellipse', { class: 'dial-shadow', cx: '50', cy: '52.5', rx: '28', ry: '27' });
-  make('circle', { class: 'dial-bezel', cx: '50', cy: '50', r: '28' });
-  make('circle', { class: 'dial-face', cx: '50', cy: '50', r: '24', fill: 'url(#dial-face-g)' });
+  // A flat paper disc on a hard offset shadow, ringed in ink — the same
+  // print language as the board and the panels, not a moulded knob.
+  make('circle', { class: 'dial-shadow', cx: '54', cy: '55', r: '27' });
+  make('circle', { class: 'dial-knob', cx: '50', cy: '50', r: '27' });
 
-  /*
-   * Everything that physically turns lives in one group: the ribbed grip
-   * around the rim and the pointer mark. Rotating the group is what makes
-   * the knob read as a knob.
-   */
+  // Only the pointer turns: a bold ink bar from near the centre to the rim.
   const rotor = make('g', { class: 'dial-rotor' });
-  for (let k = 0; k < 24; k++) {
-    const deg = k * 15;
-    const [x1, y1] = point(20.5, deg);
-    const [x2, y2] = point(23.2, deg);
-    make('line', {
-      class: 'dial-rib',
-      x1: String(x1),
-      y1: String(y1),
-      x2: String(x2),
-      y2: String(y2),
-    }, rotor);
-  }
-  make('line', { class: 'dial-pointer', x1: '50', y1: '29.5', x2: '50', y2: '38.5' }, rotor);
-
-  // A soft gloss across the upper face, over the ribs, like light on a dome.
-  make('ellipse', { class: 'dial-gloss', cx: '44', cy: '41', rx: '15', ry: '11' });
+  make('line', { class: 'dial-pointer', x1: '50', y1: '41', x2: '50', y2: '27' }, rotor);
+  make('circle', { class: 'dial-hub', cx: '50', cy: '50', r: '3' }, rotor);
 
   let current = initial;
 

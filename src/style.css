@@ -107,12 +107,6 @@
   --window-line: rgba(143, 180, 214, 0.35);
   /* Belt glyph outlines: White must read on night, Black on itself. */
   --belt-line: rgba(239, 231, 216, 0.5);
-  /* The difficulty knob's materials: dome shading, gloss, ribs, shadow. */
-  --dial-hi: #2a3d56;
-  --dial-lo: #0f1826;
-  --dial-gloss: rgba(255, 255, 255, 0.07);
-  --dial-shadow: rgba(0, 0, 0, 0.5);
-  --dial-rib: rgba(244, 239, 229, 0.2);
   --clr-alpha: 0.36;
   --reg-alpha: 0.15;
   --win-alpha: 0.2;
@@ -173,11 +167,6 @@
   --diag-bg: rgba(190, 150, 60, 0.26);
   --window-line: rgba(47, 79, 111, 0.3);
   --belt-line: rgba(23, 39, 61, 0.45);
-  --dial-hi: #fffdf6;
-  --dial-lo: #d5ccb7;
-  --dial-gloss: rgba(255, 255, 255, 0.55);
-  --dial-shadow: rgba(60, 50, 35, 0.3);
-  --dial-rib: rgba(22, 18, 12, 0.2);
   --clr-alpha: 0.3;
   --reg-alpha: 0.16;
   --win-alpha: 0.2;
@@ -241,11 +230,6 @@
   --diag-bg: rgba(240, 228, 66, 0.3);
   --window-line: #f0e442;
   --belt-line: #ffffff;
-  --dial-hi: #2b2b33;
-  --dial-lo: #000000;
-  --dial-gloss: rgba(255, 255, 255, 0.09);
-  --dial-shadow: rgba(0, 0, 0, 0.8);
-  --dial-rib: rgba(255, 255, 255, 0.32);
   --clr-alpha: 0.45;
   --reg-alpha: 0.3;
   --win-alpha: 0.34;
@@ -1341,20 +1325,20 @@ body.has-bg .screen.play {
   outline: none;
 }
 
-.dial:focus-visible .dial-bezel {
-  stroke: var(--accent);
-  stroke-width: 2.2;
+.dial:focus-visible .dial-knob {
+  stroke: var(--coral);
+  stroke-width: 2.6;
 }
 
 .dial-tick-casing {
-  stroke: var(--belt-line);
-  stroke-width: 4.6;
-  stroke-linecap: round;
+  stroke: var(--line-strong);
+  stroke-width: 5;
+  stroke-linecap: butt;
 }
 
 .dial-tick {
-  stroke-width: 2.6;
-  stroke-linecap: round;
+  stroke-width: 2.8;
+  stroke-linecap: butt;
 }
 
 /* One belt per rank — colour is the scale, as on dandoku.com. */
@@ -1382,46 +1366,36 @@ body.has-bg .screen.play {
 }
 
 .dial-num {
-  font-family: var(--font-ui);
-  font-size: 12.5px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 800;
   fill: var(--text);
   text-anchor: middle;
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
 .dial-num.on {
   opacity: 1;
-  font-size: 14.5px;
-  fill: var(--accent);
+  font-size: 14px;
+  fill: var(--coral);
 }
 
-.dial-shadow { fill: var(--dial-shadow); }
+/* The disc: paper, ink ring, hard shadow — the board's own treatment. */
+.dial-shadow { fill: var(--shadow); }
 
-.dial-bezel {
-  fill: var(--panel-2);
-  stroke: var(--line);
-  stroke-width: 1.4;
-}
-
-.dial-face { stroke: var(--line); stroke-width: 0.8; }
-
-.dial-rib {
-  stroke: var(--dial-rib);
-  stroke-width: 1.1;
-  stroke-linecap: round;
+.dial-knob {
+  fill: var(--panel);
+  stroke: var(--line-strong);
+  stroke-width: 2;
 }
 
 .dial-pointer {
-  stroke: var(--accent);
-  stroke-width: 3.4;
-  stroke-linecap: round;
+  stroke: var(--line-strong);
+  stroke-width: 4.5;
+  stroke-linecap: square;
 }
 
-.dial-gloss {
-  fill: var(--dial-gloss);
-  pointer-events: none;
-}
+.dial-hub { fill: var(--line-strong); }
 
 /* The chosen level, said in words under the dial. Tapping explains it. */
 .dial-label {
