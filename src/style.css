@@ -660,6 +660,57 @@ body.has-bg {
   background-repeat: no-repeat;
 }
 
+/* The dim: a wash of the page colour over the image, strength from the
+   slider. Negative z-index paints it above the root background and below
+   everything in the page. */
+body.has-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  opacity: var(--bg-dim, 0.55);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* The mat: with an image behind it, the play column becomes an opaque,
+   framed panel on top, so board and controls never share a pixel with
+   the picture. It carries the site's hard shadow like the board does. */
+body.has-bg .screen.play {
+  background: var(--bg);
+  border: 2px solid var(--line-strong);
+  box-shadow: 9px 11px 0 var(--shadow);
+  margin: 10px auto;
+  width: calc(100% - 20px);
+}
+
+.bg-dim {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.bg-dim input[type='range'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--coral);
+  height: 22px;
+}
+
+.bg-dim output {
+  min-width: 3.2em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
 .bg-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

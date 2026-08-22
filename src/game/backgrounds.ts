@@ -205,10 +205,12 @@ export function applyBackground(settings: Settings): void {
     return;
   }
   document.body.style.setProperty('--bg-image', `url("${image}")`);
+  document.body.style.setProperty('--bg-dim', String(settings.backgroundDim));
   document.body.classList.add('has-bg');
 }
 
 export function clearBackground(): void {
   document.body.classList.remove('has-bg');
   document.body.style.removeProperty('--bg-image');
+  document.body.style.removeProperty('--bg-dim');
 }

@@ -60,6 +60,8 @@ export interface Settings {
   level: Level;
   /** What sits behind the play screen: 'none', a preset id, or 'custom'. */
   background: string;
+  /** How far the background is faded towards the page colour, 0..1. */
+  backgroundDim: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -80,6 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
   variants: { ...NO_VARIANTS },
   level: 1,
   background: 'none',
+  backgroundDim: 0.55,
 };
 
 export interface PuzzleRecord {
@@ -141,6 +144,10 @@ export const loadSettings = (): Settings => {
     level,
     inputStyle: stored.inputStyle === 'classic' ? 'classic' : 'gesture',
     background: typeof stored.background === 'string' ? stored.background : 'none',
+    backgroundDim:
+      typeof stored.backgroundDim === 'number'
+        ? Math.min(1, Math.max(0, stored.backgroundDim))
+        : DEFAULT_SETTINGS.backgroundDim,
     // A theme nobody picked is not a preference — early storage carries the
     // old night default baked in, and the default is day now.
     theme: stored.themeChosen ? (stored.theme ?? DEFAULT_SETTINGS.theme) : DEFAULT_SETTINGS.theme,

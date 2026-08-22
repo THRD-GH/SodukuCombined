@@ -192,8 +192,30 @@ function backgroundPicker(ctx: AppContext): HTMLElement {
     else draw();
   });
 
+  // How far the picture fades into the page colour.
+  const dim = el('input', {
+    type: 'range',
+    min: 0,
+    max: 100,
+    value: Math.round(ctx.settings.backgroundDim * 100),
+    'aria-label': 'Background dim',
+  });
+  const dimOut = el('output', {}, `${Math.round(ctx.settings.backgroundDim * 100)}%`);
+  dim.addEventListener('input', () => {
+    ctx.settings.backgroundDim = Number(dim.value) / 100;
+    dimOut.textContent = `${dim.value}%`;
+    saveSettings(ctx.settings);
+    ctx.applyBackground();
+  });
+
   draw();
-  return el('div', {}, grid, el('div', { class: 'tabs', style: 'margin-top: 8px' }, upload, remove, file));
+  return el(
+    'div',
+    {},
+    grid,
+    el('label', { class: 'bg-dim' }, 'Dim', dim, dimOut),
+    el('div', { class: 'tabs', style: 'margin-top: 8px' }, upload, remove, file),
+  );
 }
 
 export function openSettings(ctx: AppContext): void {
