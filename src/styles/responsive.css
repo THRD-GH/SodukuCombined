@@ -1,6 +1,8 @@
 @media (max-width: 380px) {
   .btn { font-size: 13.5px; }
   .key { font-size: 18px; padding: 9px 4px; }
+  /* Tight bar: the puzzle code stays, the variant name goes. */
+  .titlebar .candidates { display: none; }
 }
 
 /*
@@ -70,9 +72,10 @@
     border-radius: 7px;
   }
 
-  /* The candidates line gives up its auto margin to the clock. */
+  /* The bar is the narrow column beside the board here: the puzzle code
+     and the clock fit, the variant name does not, so it goes. */
   .titlebar.with-clock .candidates {
-    margin-left: 0;
+    display: none;
   }
 
   .screen.play > .controls {

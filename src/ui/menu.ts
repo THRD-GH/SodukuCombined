@@ -177,8 +177,8 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     const variants = { ...ctx.settings.variants };
     clear(dialLabel);
     dialLabel.append(
-      el('span', { class: 'name' }, LEVEL_NAMES[level]),
       belt(level, 13),
+      el('span', { class: 'name' }, LEVEL_NAMES[level]),
       el('span', { class: 'level-info-badge', 'aria-hidden': 'true' }, '?'),
     );
     rankLine.textContent = `${LEVEL_RANKS[level]} · ${LEVEL_WORDS[level]}`;
