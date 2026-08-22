@@ -34,8 +34,9 @@ export function buildMenu(ctx: AppContext): HTMLElement {
     el(
       'div',
       { class: 'hero' },
-      el('h1', {}, 'Choose your ', el('span', {}, 'Game')),
-      el('p', {}, 'Mix the variants, pick a difficulty'),
+      el('p', { class: 'kicker' }, 'DanDoku · Sudoku'),
+      el('h1', {}, 'Pick your puzzle.'),
+      el('p', {}, 'Mix the rules, set your belt.'),
     ),
   );
 

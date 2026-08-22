@@ -7,6 +7,12 @@
  */
 :root {
   --font-ui: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+  /* Labels, ids, kickers and keypad digits: the site's monospace register. */
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, Consolas, monospace;
+  /* The DanDoku brand colours, shared by every theme. */
+  --ink: #17273d;
+  --coral: #f06951;
+  --gold: #d7a52a;
 
   /*
    * The nine hues, shared by every theme and every colour system: the Colour
@@ -30,17 +36,17 @@
 :root {
   /* The page keeps the original cool near-black: the warm board reads as a
      sheet laid on it, rather than the whole screen being tinted. */
-  --bg: #0a0d10;
-  --panel: #1d1a16;
-  --panel-2: #262119;
+  --bg: #111c2b;
+  --panel: #17263a;
+  --panel-2: #1e2e44;
   /* Interface borders and board hairlines are different weights of the same
      idea, and want different colours — the grid rule has to be quieter. */
-  --line: #3a342c;
-  --rule: #4a4238;
-  --line-strong: #b9ab93;
-  --cell: #191612;
-  --text: #efe7d8;
-  --dim: #9b917f;
+  --line: rgba(244, 239, 229, 0.18);
+  --rule: rgba(244, 239, 229, 0.22);
+  --line-strong: #f4efe5;
+  --cell: #152234;
+  --text: #f4efe5;
+  --dim: #b9c4cf;
   --accent: #8fb4d6;
   --accent-dim: #33465a;
   --cage: #6d6456;
@@ -62,10 +68,12 @@
   --peer: rgba(255, 255, 255, 0.045);
   --cage-peer: rgba(214, 178, 94, 0.07);
   --same: rgba(143, 180, 214, 0.13);
-  --shadow: rgba(0, 0, 0, 0.55);
+  --shadow: rgba(0, 0, 0, 0.45);
+  --primary-bg: #f4efe5;
+  --primary-text: #111c2b;
   /* Components for overlays you need to see through, mixed at --glass. */
-  --panel-rgb: 29 26 22;
-  --panel-2-rgb: 38 33 25;
+  --panel-rgb: 23 38 58;
+  --panel-2-rgb: 30 46 68;
   /* Required / ruled-out keys, mixed at --glass like every other surface. */
   --inc-rgb: 47 107 63;
   --exc-rgb: 168 55 45;
@@ -77,18 +85,18 @@
    * get the lighter surface and the rest share one, distinguished by the
    * colour of their lettering alone.
    */
-  --k-digit: #232019;
-  --k-digit-line: #4a4236;
-  --k-digit-text: #efe7d8;
-  --k-edit: #1e1b16;
-  --k-edit-line: #3a342c;
-  --k-edit-text: #cabfa9;
-  --k-aid: #1e1b16;
-  --k-aid-line: #3a342c;
+  --k-digit: #1e2e44;
+  --k-digit-line: rgba(244, 239, 229, 0.35);
+  --k-digit-text: #f4efe5;
+  --k-edit: #17263a;
+  --k-edit-line: rgba(244, 239, 229, 0.2);
+  --k-edit-text: #d9e0e8;
+  --k-aid: #17263a;
+  --k-aid-line: rgba(244, 239, 229, 0.2);
   --k-aid-text: #8fb4d6;
-  --k-session: #1e1b16;
-  --k-session-line: #3a342c;
-  --k-session-text: #d99a86;
+  --k-session: #17263a;
+  --k-session-line: rgba(244, 239, 229, 0.2);
+  --k-session-text: #f28b76;
   /* The tally button wears the colour it paints the board with. */
   --k-tally: #2a2034;
   --k-tally-line: #6b4d85;
@@ -100,11 +108,11 @@
   /* Belt glyph outlines: White must read on night, Black on itself. */
   --belt-line: rgba(239, 231, 216, 0.5);
   /* The difficulty knob's materials: dome shading, gloss, ribs, shadow. */
-  --dial-hi: #332c22;
-  --dial-lo: #15120e;
+  --dial-hi: #2a3d56;
+  --dial-lo: #0f1826;
   --dial-gloss: rgba(255, 255, 255, 0.07);
-  --dial-shadow: rgba(0, 0, 0, 0.45);
-  --dial-rib: rgba(239, 231, 216, 0.2);
+  --dial-shadow: rgba(0, 0, 0, 0.5);
+  --dial-rib: rgba(244, 239, 229, 0.2);
   --clr-alpha: 0.36;
   --reg-alpha: 0.15;
   --win-alpha: 0.2;
@@ -114,17 +122,17 @@
    colour on the board at all. The cursor is a wash of ochre, and the only other
    colour in the grid is the one red that says an entry is wrong. */
 :root[data-theme='day'] {
-  --bg: #dfe4e9;
-  --panel: #f6f1e6;
-  --panel-2: #ece5d6;
-  --line: #cdc3b1;
-  --rule: #a89e8d;
-  --line-strong: #16120c;
-  --cell: #faf6ec;
-  --text: #16120c;
-  --dim: #6b6357;
-  --accent: #2f4f6f;
-  --accent-dim: #b9cad9;
+  --bg: #f4efe5;
+  --panel: #fffdfa;
+  --panel-2: #f4efe5;
+  --line: rgba(23, 39, 61, 0.24);
+  --rule: rgba(23, 39, 61, 0.3);
+  --line-strong: #17273d;
+  --cell: #fffdfa;
+  --text: #17273d;
+  --dim: #66717c;
+  --accent: #3979a8;
+  --accent-dim: #dbe8ee;
   --cage: #8a8072;
   --sum: #2f2921;
   --mark: #7a7264;
@@ -138,24 +146,26 @@
   --peer: rgba(22, 18, 12, 0.045);
   --cage-peer: rgba(107, 99, 87, 0.08);
   --same: rgba(47, 79, 111, 0.1);
-  --shadow: rgba(60, 50, 35, 0.22);
-  --panel-rgb: 246 241 230;
-  --panel-2-rgb: 236 229 214;
+  --shadow: rgba(23, 39, 61, 0.12);
+  --primary-bg: #17273d;
+  --primary-text: #ffffff;
+  --panel-rgb: 255 253 250;
+  --panel-2-rgb: 244 239 229;
   --inc-rgb: 47 107 63;
   --exc-rgb: 168 34 28;
 
-  --k-digit: #fffdf8;
-  --k-digit-line: #cdc3b1;
-  --k-digit-text: #16120c;
-  --k-edit: #ece5d6;
-  --k-edit-line: #cdc3b1;
-  --k-edit-text: #4a443a;
-  --k-aid: #f6f1e6;
-  --k-aid-line: #cdc3b1;
-  --k-aid-text: #2f4f6f;
-  --k-session: #f6f1e6;
-  --k-session-line: #cdc3b1;
-  --k-session-text: #8a4a3a;
+  --k-digit: #fffdfa;
+  --k-digit-line: rgba(23, 39, 61, 0.4);
+  --k-digit-text: #17273d;
+  --k-edit: #e9ded0;
+  --k-edit-line: rgba(23, 39, 61, 0.3);
+  --k-edit-text: #17273d;
+  --k-aid: #fffdfa;
+  --k-aid-line: rgba(23, 39, 61, 0.3);
+  --k-aid-text: #3979a8;
+  --k-session: #fffdfa;
+  --k-session-line: rgba(23, 39, 61, 0.3);
+  --k-session-text: #c4503c;
   --k-tally: #f3ecf9;
   --k-tally-line: #cdb4e0;
   --k-tally-text: #6b3f96;
@@ -204,6 +214,8 @@
   --cage-peer: rgba(240, 228, 66, 0.12);
   --same: rgba(86, 180, 233, 0.18);
   --shadow: rgba(0, 0, 0, 0.9);
+  --primary-bg: #0072b2;
+  --primary-text: #ffffff;
   --panel-rgb: 0 0 0;
   --panel-2-rgb: 16 16 20;
   /* Blue for required, vermillion for ruled out — not green and red. */
@@ -304,17 +316,30 @@ body {
   align-items: center;
   gap: 8px;
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 2px solid var(--line-strong);
+  border-radius: 2px;
   padding: 6px 8px;
   min-height: 42px;
 }
 
 .titlebar .id {
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text);
   font-variant-numeric: tabular-nums;
+}
+
+.titlebar .candidates,
+.titlebar .timer,
+.pool-left,
+.rank-line,
+.build-stamp,
+.summary,
+.key .count {
+  font-family: var(--font-mono);
 }
 
 /* The clock, at home in the bar: read at a glance, tap to hide the time. */
@@ -323,7 +348,7 @@ body {
   min-width: 56px;
   padding: 4px 8px;
   font-size: 14px;
-  border-radius: 7px;
+  border-radius: 2px;
 }
 
 .titlebar .candidates {
@@ -361,7 +386,7 @@ body {
   gap: 3px;
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 2px;
   cursor: pointer;
   padding: 5px 6px;
   flex: 0 0 auto;
@@ -395,7 +420,7 @@ body {
   border: 2px solid var(--line-strong);
   background: var(--cell);
   /* Lifts the grid off the page: it reads as a sheet laid on the screen. */
-  box-shadow: 0 6px 22px var(--shadow);
+  box-shadow: 9px 11px 0 var(--shadow);
   /* `none`, not `manipulation`: manipulation still leaves panning on the table,
      so a tap with the smallest drag can be reinterpreted as a scroll, and the
      pointer is cancelled mid-gesture. There is nothing to scroll here. */
@@ -737,7 +762,7 @@ body {
 .pause-btn {
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 2px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -763,7 +788,7 @@ body {
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 2px;
   font-family: var(--font-ui);
   font-size: 20px;
   font-weight: 600;
@@ -783,6 +808,7 @@ body {
 /* Four groups, so what a control does is legible before you read it:
    digits, the editing keys, the solving aids, and the session buttons. */
 .numpad .key {
+  font-family: var(--font-mono);
   background: var(--k-digit);
   border-color: var(--k-digit-line);
   color: var(--k-digit-text);
@@ -846,7 +872,7 @@ body {
 }
 
 .timer {
-  border-radius: 5px;
+  border-radius: 2px;
   border: 1px solid var(--line);
   padding: 6px 4px;
   text-align: center;
@@ -889,32 +915,57 @@ body {
 }
 
 .btn.primary {
-  background: var(--accent-dim);
-  border-color: var(--accent);
+  background: var(--primary-bg);
+  border-color: var(--primary-bg);
+  color: var(--primary-text);
+}
+
+.btn.primary:active {
+  background: var(--primary-bg);
+  opacity: 0.85;
 }
 
 /* ---------- menu / level select ---------- */
 
 .hero {
-  text-align: center;
-  padding: 10px 0 2px;
+  text-align: left;
+  padding: 14px 2px 6px;
+}
+
+/* The site's kicker: mono, tracked, a coral dash before it. */
+.kicker {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.kicker::before {
+  content: '';
+  display: inline-block;
+  width: 31px;
+  height: 2px;
+  margin-right: 12px;
+  vertical-align: middle;
+  background: var(--coral);
 }
 
 .hero h1 {
   margin: 0;
-  font-size: 30px;
-  letter-spacing: 1px;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -0.045em;
   font-weight: 800;
 }
 
-.hero h1 span {
-  color: var(--accent);
-}
-
 .hero p {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   color: var(--dim);
   font-size: 13px;
+  line-height: 1.5;
 }
 
 /* ---------- game picker ---------- */
@@ -930,7 +981,7 @@ body {
   align-items: center;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 2px;
   padding: 10px;
 }
 
@@ -998,7 +1049,7 @@ body {
   width: min(100%, 208px);
   aspect-ratio: 1;
   height: auto;
-  box-shadow: 0 4px 14px var(--shadow);
+  box-shadow: 6px 7px 0 var(--shadow);
 }
 
 .board-preview {
@@ -1046,11 +1097,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  color: var(--accent);
-  font-size: 13px;
+  gap: 8px;
+  font-family: var(--font-mono);
+  color: var(--text);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .combo-label .stars {
@@ -1066,7 +1119,7 @@ body {
   align-items: center;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 2px;
   padding: 10px 12px;
   user-select: none;
   -webkit-user-select: none;
@@ -1074,10 +1127,11 @@ body {
 
 .col-title {
   margin: 0;
-  color: var(--accent);
+  font-family: var(--font-mono);
+  color: var(--dim);
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
@@ -1243,7 +1297,7 @@ body {
   font-size: 14.5px;
   font-weight: 800;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 2px;
 }
 
 .dial-label:hover,
@@ -1275,14 +1329,31 @@ body {
   min-width: 0;
 }
 
-/* Two identical play buttons: same face, same type. */
+/* Two identical play buttons: the site's play-now — ink, mono caps, a
+   coral shadow that the press pushes flat. */
 .play-col .play-big {
   padding: 13px 12px;
+  background: var(--primary-bg);
+  border: 2px solid var(--primary-bg);
+  box-shadow: 4px 4px 0 var(--coral);
+  transition: transform 0.12s, box-shadow 0.12s;
 }
 
-.play-col .play-big .source-name {
-  font-size: 16px;
+.play-col .play-big:active {
+  background: var(--primary-bg);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--coral);
+}
+
+/* Outranks .source.new .source-name, which paints the accent. */
+.play-col .source.play-big .source-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   text-align: center;
+  color: var(--primary-text);
 }
 
 /* What is left in this pool, in the description column. */
@@ -1298,7 +1369,7 @@ body {
   min-width: 0;
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 2px;
   padding: 6px 5px;
   cursor: pointer;
   text-align: left;
@@ -1325,6 +1396,14 @@ body {
 
 .source.new .source-name {
   color: var(--accent);
+}
+
+.actions .btn.primary.wide {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0 var(--coral);
 }
 
 .source-meta {
@@ -1402,20 +1481,21 @@ body {
 
 .panel {
   background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 2px solid var(--line-strong);
+  border-radius: 2px;
   padding: 14px;
   width: 100%;
   max-width: 480px;
   max-height: 86vh;
   overflow: auto;
-  box-shadow: 0 10px 40px var(--shadow);
+  box-shadow: 8px 8px 0 var(--shadow);
 }
 
 .panel h2 {
   margin: 0 0 10px;
-  font-size: 19px;
-  color: var(--accent);
+  font-size: 21px;
+  letter-spacing: -0.03em;
+  color: var(--text);
 }
 
 /* Stays put while the panel body scrolls, so the way out is always on screen. */
@@ -1600,7 +1680,7 @@ body {
   background: var(--panel-2);
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .picker-jump .btn {
@@ -1640,7 +1720,7 @@ body {
   gap: 8px;
   padding: 7px 8px;
   font-size: 13px;
-  border-radius: 4px;
+  border-radius: 2px;
   align-items: center;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
@@ -1671,7 +1751,7 @@ body {
   flex: 0 0 38px;
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 2px;
   /* Red: it throws a game away, and it sits a thumb's width from the row that
      opens one. Colour and shape both have to say so. */
   color: var(--error);
@@ -1804,7 +1884,7 @@ body {
 .totals .tile {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 2px;
   padding: 7px 4px;
   text-align: center;
   min-width: 0;
@@ -1863,10 +1943,10 @@ body {
   border: 1px solid var(--accent);
   color: var(--text);
   padding: 9px 16px;
-  border-radius: 20px;
+  border-radius: 2px;
   font-size: 13px;
   z-index: 70;
-  box-shadow: 0 6px 20px var(--shadow);
+  box-shadow: 4px 4px 0 var(--shadow);
   pointer-events: none;
 }
 
@@ -1878,7 +1958,7 @@ body {
   margin: 14px 0 10px;
   padding: 18px 12px;
   border: 1px solid var(--accent);
-  border-radius: 8px;
+  border-radius: 2px;
   background: var(--accent-dim);
   min-height: 126px;
   display: grid;
@@ -1897,14 +1977,14 @@ body {
 .tutorial-key-row::before { content: 'Tap'; color: var(--dim); font-size: 11px; align-self: center; margin-right: 2px; }
 .tutorial-key-row { color: var(--k-digit-text); font-size: 15px; font-weight: 800; }
 .tutorial-key-row span { min-width: 28px; padding: 6px 4px; border: 1px solid var(--k-digit-line); border-radius: 3px; background: var(--k-digit); }
-.tutorial-key { width: 56px; height: 64px; display: grid; place-items: center; border: 1px solid var(--k-digit-line); border-radius: 5px; background: var(--k-digit); color: var(--k-digit-text); font-size: 25px; font-weight: 800; }
+.tutorial-key { width: 56px; height: 64px; display: grid; place-items: center; border: 1px solid var(--k-digit-line); border-radius: 2px; background: var(--k-digit); color: var(--k-digit-text); font-size: 25px; font-weight: 800; }
 .tutorial-key small { display: block; font-size: 8px; color: var(--dim); }
 .tutorial-arrow { color: var(--accent); font-size: 25px; }
 .answer-cell { color: var(--text); }
 /* The variant-chips step: two chips lit, two off, as on the menu. */
 .tutorial-chip-on { background: var(--accent-dim) !important; border-color: var(--accent) !important; color: var(--text) !important; }
 .tutorial-ready { flex-wrap: wrap; }
-.tutorial-ready span { padding: 9px 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); font-size: 12px; font-weight: 750; }
+.tutorial-ready span { padding: 9px 12px; border: 1px solid var(--line); border-radius: 2px; background: var(--panel-2); font-size: 12px; font-weight: 750; }
 .tutorial-copy { min-height: 58px; }
 
 /* Technique guide: one page per technique, sized to fit a phone whole. */
@@ -1916,7 +1996,7 @@ body {
 .guide-technique {
   background: var(--panel-2);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 8px 10px;
 }
 .guide-technique b { color: var(--accent); font-size: 14px; }
@@ -1965,10 +2045,10 @@ body {
   gap: 12px;
   padding: 9px 10px 9px 14px;
   border: 1px solid var(--accent);
-  border-radius: 8px;
+  border-radius: 2px;
   background: var(--panel);
   color: var(--text);
-  box-shadow: 0 6px 20px var(--shadow);
+  box-shadow: 4px 4px 0 var(--shadow);
   font-size: 13px;
 }
 .update-notice .btn { padding: 7px 12px; }
