@@ -169,3 +169,79 @@
     flex: 0 0 34px;
   }
 }
+
+/*
+ * The home screen held landscape on a phone: a 375px-tall window shows a
+ * hero and half a picker of the portrait column, and the rest is scroll.
+ * Two-up instead — the picker left, the difficulty row right, the title
+ * bar across the top and Resume across the bottom — with the hero and the
+ * build stamp dropped: the bar already says what this is.
+ */
+@media (orientation: landscape) and (max-height: 560px) {
+  .screen.menu {
+    max-width: none;
+    width: 100%;
+    padding: 8px;
+    gap: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .screen.menu > .titlebar {
+    grid-column: 1 / -1;
+    min-height: 34px;
+    padding: 3px 8px;
+  }
+
+  .screen.menu > .hero,
+  .screen.menu > .build-stamp {
+    display: none;
+  }
+
+  .screen.menu > .picker-row {
+    grid-column: 1;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .screen.menu .vopt {
+    padding: 4px 2px;
+    font-size: 13px;
+  }
+
+  .screen.menu .game-preview .board-preview {
+    width: min(100%, 168px);
+  }
+
+  /* The difficulty row in half a screen: knob and description side by
+     side, the two plays across the bottom of it. */
+  .screen.menu > .level-row {
+    grid-column: 2;
+    grid-template-columns: minmax(96px, 0.8fr) minmax(0, 1.2fr);
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .screen.menu .level-row .play-col {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  .screen.menu .level-row .play-col > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .screen.menu .dial {
+    width: min(100%, 100px);
+  }
+
+  .screen.menu .play-col .play-big {
+    padding: 9px 8px;
+  }
+
+  .screen.menu > .actions {
+    grid-column: 1 / -1;
+  }
+}
