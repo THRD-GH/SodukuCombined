@@ -5,7 +5,7 @@ import { formatPuzzleId, parseVariantCode, variantLabel } from './core/types.ts'
 import { getPuzzle, prefetch } from './game/generate.ts';
 import { registerServiceWorker, setThemeColour } from './game/pwa.ts';
 import { keepScreenAwake } from './game/wakelock.ts';
-import { applyBackground, clearBackground } from './game/backgrounds.ts';
+import { applyBackground } from './game/backgrounds.ts';
 import { Game } from './game/state.ts';
 import {
   POOL_SIZE,
@@ -54,6 +54,7 @@ class App implements AppContext {
     this.root = root;
     this.applyTheme();
     this.applyKeypadSide();
+    applyBackground(this.settings);
 
     this.guardBackButton();
     document.addEventListener('keydown', (e) => this.play?.handleKey(e));
@@ -182,10 +183,9 @@ class App implements AppContext {
     keepScreenAwake(this.settings.keepAwake && this.play !== null && !this.play.isPaused);
   }
 
-  /** Only the play screen carries the background; the menu stays paper. */
+  /** The chosen background sits behind every screen. */
   applyBackground(): void {
-    if (this.play) applyBackground(this.settings);
-    else clearBackground();
+    applyBackground(this.settings);
   }
 
   /** Landscape reads this off the root, so no screen has to be rebuilt. */
@@ -199,6 +199,7 @@ class App implements AppContext {
     this.history = loadHistory();
     this.applyTheme();
     this.applyKeypadSide();
+    applyBackground(this.settings);
     this.goMenu();
   }
 
@@ -209,7 +210,6 @@ class App implements AppContext {
   private mount(node: HTMLElement): void {
     this.play?.destroy();
     this.play = null;
-    clearBackground();
     clear(this.root);
     this.root.append(node);
   }
@@ -309,7 +309,6 @@ class App implements AppContext {
     const screen = new PlayScreen(this, game);
     this.play = screen;
     this.root.append(screen.root);
-    applyBackground(this.settings);
     openFirstGameTutorial();
   }
 }

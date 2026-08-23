@@ -254,7 +254,7 @@ export function openSettings(ctx: AppContext): void {
         ),
       ),
       stacked(
-        'Board background',
+        'Background',
         'Behind the playing board. The patterns are drawn by the game; a photo of your own is shrunk to fit and stays on this device.',
         backgroundPicker(ctx),
       ),

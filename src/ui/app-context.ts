@@ -12,7 +12,7 @@ export interface AppContext {
   applyKeypadSide(): void;
   /** Take or drop the screen wake lock, after the setting changes. */
   applyWakeLock(): void;
-  /** Put the chosen background behind the play screen, if one is open. */
+  /** Re-apply the chosen background after the setting changes. */
   applyBackground(): void;
   /** Re-read storage and return to the menu, after an import replaces it. */
   reload(): void;
