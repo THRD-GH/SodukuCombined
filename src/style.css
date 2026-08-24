@@ -662,6 +662,12 @@ body.has-bg .screen {
   box-shadow: 9px 11px 0 var(--shadow);
   margin: 10px auto;
   width: calc(100% - 20px);
+  /*
+   * Hug the content. #app is a flex row, so a stretched item runs the whole
+   * viewport height and the paper band carries on far below the last
+   * control — the picture belongs there, not more mat.
+   */
+  align-self: flex-start;
 }
 
 /*
@@ -2319,4 +2325,19 @@ body.has-bg .screen {
   .pause-btn {
     flex: 0 0 40px;
   }
+}
+
+
+/* The Game | Display switch at the top of Settings. A shade more present than
+   the pickers inside the rows: it is navigation, not a value. */
+.section-tabs .tabs {
+  margin-bottom: 10px;
+}
+
+.section-tabs .tabs .btn {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  padding: 8px 4px;
 }

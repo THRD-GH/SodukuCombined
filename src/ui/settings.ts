@@ -220,70 +220,66 @@ function backgroundPicker(ctx: AppContext): HTMLElement {
 
 export function openSettings(ctx: AppContext): void {
   openOverlay((close) => {
-    const list = el('div', {});
-
-    // Theme first: it changes everything else on the screen.
-    list.append(
-      stacked(
-        'Theme',
-        null,
-        picker(
-          THEMES,
-          () => ctx.settings.theme,
-          (theme) => {
-            ctx.settings.theme = theme;
-            // A hand-picked theme outranks any future change of default.
-            ctx.settings.themeChosen = true;
-            saveSettings(ctx.settings);
-            ctx.applyTheme();
-          },
-        ),
+    /*
+     * Two sections, because one list had outgrown a phone: Game for how the
+     * puzzle behaves and how you write into it, Display for how it looks and
+     * what the device does. The rows are built once and re-homed on switch,
+     * so a half-flipped toggle keeps its state when you change tabs.
+     */
+    const themeRow = stacked(
+      'Theme',
+      null,
+      picker(
+        THEMES,
+        () => ctx.settings.theme,
+        (theme) => {
+          ctx.settings.theme = theme;
+          // A hand-picked theme outranks any future change of default.
+          ctx.settings.themeChosen = true;
+          saveSettings(ctx.settings);
+          ctx.applyTheme();
+        },
       ),
-      stacked(
-        'Input style',
-        'Gestures: a tap toggles candidates, and holding (or double-tapping) a digit writes it in as the answer. Classic: a NOTES switch on the keypad chooses what a tap writes, and holding a digit does the opposite of the switch.',
-        picker(
-          INPUT_STYLES,
-          () => ctx.settings.inputStyle,
-          (style) => {
-            ctx.settings.inputStyle = style;
-            saveSettings(ctx.settings);
-            // The play screen shows or hides its NOTES switch off this.
-            ctx.refreshBoard();
-          },
-        ),
+    );
+    const inputRow = stacked(
+      'Input style',
+      'Gestures: a tap toggles candidates, and holding (or double-tapping) a digit writes it in as the answer. Classic: a NOTES switch on the keypad chooses what a tap writes, and holding a digit does the opposite of the switch.',
+      picker(
+        INPUT_STYLES,
+        () => ctx.settings.inputStyle,
+        (style) => {
+          ctx.settings.inputStyle = style;
+          saveSettings(ctx.settings);
+          // The play screen shows or hides its NOTES switch off this.
+          ctx.refreshBoard();
+        },
       ),
-      stacked(
-        'Background',
-        'Behind the playing board. The patterns are drawn by the game; a photo of your own is shrunk to fit and stays on this device.',
-        backgroundPicker(ctx),
-      ),
-      stacked(
-        'Keypad side',
-        'Right puts the digits under a right thumb, with the other buttons across from them. Applies in portrait and landscape.',
-        picker(
-          KEYPAD_SIDES,
-          () => ctx.settings.keypadSide,
-          (side) => {
-            ctx.settings.keypadSide = side;
-            saveSettings(ctx.settings);
-            ctx.applyKeypadSide();
-          },
-        ),
+    );
+    const backgroundRow = stacked(
+      'Background',
+      'Behind every screen. The patterns are drawn by the game; a photo of your own is shrunk to fit and stays on this device.',
+      backgroundPicker(ctx),
+    );
+    const keypadRow = stacked(
+      'Keypad side',
+      'Right puts the digits under a right thumb, with the other buttons across from them. Applies in portrait and landscape.',
+      picker(
+        KEYPAD_SIDES,
+        () => ctx.settings.keypadSide,
+        (side) => {
+          ctx.settings.keypadSide = side;
+          saveSettings(ctx.settings);
+          ctx.applyKeypadSide();
+        },
       ),
     );
 
-    for (const toggle of TOGGLES) {
+    const toggleRow = (toggle: Toggle): HTMLElement => {
       const knob = el('span', { class: `switch ${ctx.settings[toggle.key] ? 'on' : ''}`.trim() });
       const row = el(
         'div',
         { class: 'setting' },
-        el(
-          'span',
-          { class: 'label' },
-          toggle.title,
-          el('small', {}, toggle.detail),
-        ),
+        el('span', { class: 'label' }, toggle.title, el('small', {}, toggle.detail)),
         knob,
       );
       row.addEventListener('click', () => {
@@ -294,12 +290,57 @@ export function openSettings(ctx: AppContext): void {
         // The board reads settings live, so it just needs a repaint.
         ctx.refreshBoard();
       });
-      list.append(row);
-    }
+      return row;
+    };
+    const rows = (keys: BooleanSetting[]): HTMLElement[] =>
+      keys.map((key) => {
+        const toggle = TOGGLES.find((t) => t.key === key);
+        if (!toggle) throw new Error(`no such setting: ${key}`);
+        return toggleRow(toggle);
+      });
+
+    const gameRows: HTMLElement[] = [
+      inputRow,
+      ...rows([
+        'allowSingleCandidates',
+        'autoRemoveCandidates',
+        'instantCheck',
+        'clearNeedsLongClick',
+        'hintNeedsLongClick',
+        'undoNeedsLongClick',
+      ]),
+    ];
+    const displayRows: HTMLElement[] = [
+      themeRow,
+      backgroundRow,
+      keypadRow,
+      ...rows(['highlightPeers', 'highlightSameDigit', 'keepAwake', 'showTimer']),
+    ];
+
+    let section: 'game' | 'display' = 'game';
+    const body = el('div', {});
+    const drawBody = (): void => {
+      clear(body);
+      body.append(...(section === 'game' ? gameRows : displayRows));
+    };
+    const sectionTabs = picker(
+      [
+        { value: 'game', label: 'Game' },
+        { value: 'display', label: 'Display' },
+      ],
+      () => section,
+      (value) => {
+        section = value;
+        drawBody();
+      },
+    );
+    drawBody();
 
     /*
      * Everything lives in localStorage, which a browser can clear without
      * warning. A file you keep is the only real protection for a long history.
+     * Below both sections, because losing it inside a tab is how a backup
+     * never gets made.
      */
     const save = el('button', { class: 'btn' }, 'Export data');
     save.addEventListener('click', () => {
@@ -339,14 +380,6 @@ export function openSettings(ctx: AppContext): void {
       ),
     );
 
-    list.append(
-      stacked(
-        'Your data',
-        'History, settings and parked games as a file you keep.',
-        el('div', { class: 'tabs' }, save, load, file),
-      ),
-    );
-
     const done = el('button', { class: 'btn primary' }, 'Done');
     done.addEventListener('click', close);
 
@@ -354,7 +387,13 @@ export function openSettings(ctx: AppContext): void {
       'div',
       { class: 'panel' },
       el('h2', {}, 'Settings'),
-      list,
+      el('div', { class: 'section-tabs' }, sectionTabs),
+      body,
+      stacked(
+        'Your data',
+        'History, settings and parked games as a file you keep.',
+        el('div', { class: 'tabs' }, save, load, file),
+      ),
       el('div', { class: 'panel-footer' }, done),
     );
   });
