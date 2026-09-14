@@ -104,38 +104,6 @@ class Canvas {
     }
   }
 
-  /** Dashed rectangle outline — the visual signature of a killer cage. */
-  dashedRect(
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    thickness: number,
-    dash: number,
-    gap: number,
-    colour: RGBA,
-  ): void {
-    const run = (fromX: number, fromY: number, dirX: number, dirY: number, len: number): void => {
-      let travelled = 0;
-      while (travelled < len) {
-        const step = Math.min(dash, len - travelled);
-        const sx = fromX + dirX * travelled;
-        const sy = fromY + dirY * travelled;
-        this.rect(
-          dirX ? sx : sx - thickness / 2,
-          dirY ? sy : sy - thickness / 2,
-          dirX ? step : thickness,
-          dirY ? step : thickness,
-          colour,
-        );
-        travelled += dash + gap;
-      }
-    };
-    run(x, y, 1, 0, w);
-    run(x, y + h, 1, 0, w);
-    run(x, y, 0, 1, h);
-    run(x + w, y, 0, 1, h);
-  }
 
   /** Average the supersampled buffer down to the final size. */
   downsample(factor: number): Canvas {
@@ -218,12 +186,13 @@ function encodePNG(canvas: Canvas): Buffer {
 
 // -------------------------------------------------------------- the artwork
 
-/* The board's own palette: cream stock, ink rules, one ochre wash. */
-const STOCK: RGBA = [250, 246, 236, 255];
-const INK: RGBA = [22, 18, 12, 255];
-const RULE: RGBA = [168, 158, 141, 255];
-const CAGE: RGBA = [110, 102, 90, 255];
-const WASH: RGBA = [190, 150, 60, 90];
+/* The house palette: paper, ink rules, and two of the variant washes — the
+   site's blue, and the coral that marks Sudoku Variants on dandoku.com. */
+const STOCK: RGBA = [255, 253, 250, 255];
+const INK: RGBA = [23, 39, 61, 255];
+const RULE: RGBA = [160, 166, 172, 255];
+const BLUE: RGBA = [57, 121, 168, 110];
+const CORAL: RGBA = [240, 105, 81, 120];
 
 /**
  * Figures as polylines in a unit box. Only the ones the icon uses are here —
@@ -231,13 +200,6 @@ const WASH: RGBA = [190, 150, 60, 90];
  * like a calculator rather than a printed puzzle.
  */
 const FIGURES: Record<string, [number, number][][]> = {
-  '1': [
-    [
-      [0.16, 0.24],
-      [0.46, 0.04],
-      [0.46, 0.96],
-    ],
-  ],
   '5': [
     [
       [0.82, 0.05],
@@ -249,13 +211,6 @@ const FIGURES: Record<string, [number, number][][]> = {
       [0.62, 0.9],
       [0.3, 0.94],
       [0.14, 0.84],
-    ],
-  ],
-  '7': [
-    [
-      [0.12, 0.06],
-      [0.86, 0.06],
-      [0.42, 0.96],
     ],
   ],
 };
@@ -277,11 +232,11 @@ interface Ink {
   stock: RGBA;
   ink: RGBA;
   rule: RGBA;
-  cage: RGBA;
-  wash: RGBA;
+  washA: RGBA;
+  washB: RGBA;
 }
 
-const DAY: Ink = { stock: STOCK, ink: INK, rule: RULE, cage: CAGE, wash: WASH };
+const DAY: Ink = { stock: STOCK, ink: INK, rule: RULE, washA: BLUE, washB: CORAL };
 
 /** The frame every design sits in: heavy ink around the cells. */
 const frameRect = (c: Canvas, x: number, y: number, side: number, t: number, colour: RGBA): void => {
@@ -291,40 +246,17 @@ const frameRect = (c: Canvas, x: number, y: number, side: number, t: number, col
   c.rect(x + side - t / 2, y - t / 2, t, side + t, colour);
 };
 
-/**
- * A cage outline with the top-left corner cut out for its total — the detail
- * that says killer sudoku rather than sudoku, and the same one the board draws.
- */
-const notchedCage = (
-  c: Canvas,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  notch: number,
-  t: number,
-  colour: RGBA,
-): void => {
-  c.line(x + notch, y, x + w, y, t, colour);
-  c.line(x + w, y, x + w, y + h, t, colour);
-  c.line(x + w, y + h, x, y + h, t, colour);
-  c.line(x, y + h, x, y + notch * 0.7, t, colour);
-};
-
-const total = (c: Canvas, x: number, y: number, h: number, t: number, colour: RGBA): void => {
-  const w = h * 0.5;
-  figure(c, '1', x, y, w, h, t, colour);
-  figure(c, '5', x + w * 1.3, y, w, h, t, colour);
-};
 
 /**
- * The icon: a corner of the board. Cream stock, a hairline between the cells
- * and heavy ink at the frame, a cage over the top two with the notch cut for
- * its total, and one answer written in on the cursor's wash.
+ * The icon: a corner of a variants board. Paper stock, a hairline between
+ * the cells and heavy ink at the frame, and the one thing that says variants
+ * rather than plain sudoku — the X diagonal drawn corner to corner, its two
+ * cells washed in two different rule colours, because the game is rules
+ * mixed together. A given 5 sits in a clean cell off the diagonal.
  *
- * Two cells across rather than three. At 48px — the size in a task bar, and
- * the one that decides whether an icon works — a 3x3 put five things on screen
- * and none of them could be read.
+ * Two cells across rather than three, as in the sibling games: at 48px — the
+ * size in a task bar, and the one that decides whether an icon works — a 3x3
+ * put five things on screen and none of them could be read.
  *
  * `pad` is the share of the canvas left as margin: bigger for maskable icons,
  * whose corners get cropped to whatever shape the launcher wants.
@@ -336,42 +268,31 @@ function corner(c: Canvas, S: number, pad: number, ink: Ink): void {
   const frame = Math.max(2, S * 0.03);
   const hair = Math.max(1, S * 0.012);
 
-  c.rect(margin, margin + cell, cell, cell, ink.wash);
+  // The diagonal's two cells, each in its own rule colour.
+  c.rect(margin, margin, cell, cell, ink.washA);
+  c.rect(margin + cell, margin + cell, cell, cell, ink.washB);
+
   c.rect(margin + cell - hair / 2, margin, hair, grid, ink.rule);
   c.rect(margin, margin + cell - hair / 2, grid, hair, ink.rule);
-  frameRect(c, margin, margin, grid, frame, ink.ink);
 
-  const inset = cell * 0.14;
-  notchedCage(
-    c,
-    margin + inset,
-    margin + inset,
-    grid - inset * 2,
-    cell - inset * 2,
-    cell * 0.5,
-    Math.max(2, S * 0.018),
-    ink.cage,
-  );
-  total(
-    c,
-    margin + inset + cell * 0.02,
-    margin + inset - cell * 0.02,
-    cell * 0.3,
-    Math.max(2, S * 0.02),
-    ink.ink,
-  );
+  // The X diagonal, stopped short of the frame so the corner stays crisp.
+  const cut = frame * 1.4;
+  c.line(margin + cut, margin + cut, margin + grid - cut, margin + grid - cut, Math.max(2, S * 0.028), ink.ink);
 
+  // A given digit, off the diagonal.
   const h = cell * 0.56;
   figure(
     c,
-    '7',
-    margin + (cell - h * 0.62) / 2,
-    margin + cell + (cell - h) / 2,
+    '5',
+    margin + cell + (cell - h * 0.62) / 2,
+    margin + (cell - h) / 2,
     h * 0.62,
     h,
     Math.max(3, S * 0.042),
     ink.ink,
   );
+
+  frameRect(c, margin, margin, grid, frame, ink.ink);
 }
 
 function drawIcon(size: number, pad: number, rounded: boolean, ink: Ink = DAY): Canvas {
